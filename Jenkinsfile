@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build Backend') {
             steps {
-                dir('proto-back') {
+                dir('Ing2-proto/Ing2-proto/proto-back') {
                     sh 'mvn clean package -DskipTests' 
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build Frontend') {
             steps {
-                dir('proto-front') {
+                dir('Ing2-proto/Ing2-proto/proto-front') {
                     sh 'npm install'
                     sh 'npm run build'
                 }
