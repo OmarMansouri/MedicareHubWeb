@@ -8,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/OmarMansouri/MedicareHubWeb.git'
@@ -18,7 +17,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('Ing2-proto/Ing2-proto/proto-back') {
-                    sh 'mvn clean package -DskipTests'
+                    sh 'mvn clean package -DskipTests' 
                 }
             }
         }
@@ -36,33 +35,19 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'Ing2-proto/Ing2-proto/proto-back/target/*.jar', fingerprint: true
                 archiveArtifacts artifacts: 'Ing2-proto/Ing2-proto/proto-front/build/**', fingerprint: true
+
             }
         }
 
         stage('Deploy to Integration VM') {
             steps {
-
-                // Copier backend + frontend
+                // Copier le backend et frontend 
                 sh "scp Ing2-proto/Ing2-proto/proto-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
                 sh "scp -r Ing2-proto/Ing2-proto/proto-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
-                // Une seule commande : restart backend + lancer frontend
-                sh """
-                ssh ${SSH_USER}@${SSH_HOST} '
-                    pkill -f java || true
 
-                    echo "Lancement du backend..."
-                    nohup java -jar ${DEPLOY_DIR}/backend/*.jar \
-                        > ${DEPLOY_DIR}/backend/logs.log 2>&1 &
-
-                    echo "Lancement du frontend..."
-                    cd ${DEPLOY_DIR}/frontend &&
-                    nohup npx serve -s . -l 3000 \
-                        > ${DEPLOY_DIR}/frontend/logs.log 2>&1 &
-
-                    echo "Déploiement terminé."
-                '
-                """
+                // Redémarrer le backend sur la VM
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true && nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
             }
         }
     }
