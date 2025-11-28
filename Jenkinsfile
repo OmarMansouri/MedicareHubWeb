@@ -39,18 +39,34 @@ pipeline {
             }
         }
 
-        stage('Deploy to Integration VM') {
-            steps {
-                // Copier le backend et frontend 
-                sh "scp Ing2-proto/Ing2-proto/proto-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
-                sh "scp -r Ing2-proto/Ing2-proto/proto-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
-
-
-                // Redémarrer le backend sur la VM
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true && nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
-            }
+       stage('Deploy to Integration VM') {
+    steps {
+        script {
+            // Stop existing services
+            sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true'"
+            
+            // Copy backend
+            sh "scp Ing2-proto/Ing2-proto/proto-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
+            
+            // Copy frontend
+            sh "scp -r Ing2-proto/Ing2-proto/proto-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
+            
+            // Update frontend configuration for production
+            sh """
+                ssh ${SSH_USER}@${SSH_HOST} "
+                    # Update frontend config to point to backend
+                    sed -i 's|http://localhost:8080|http://${SSH_HOST}:8080|g' ${DEPLOY_DIR}/frontend/assets/environment.js
+                    
+                    # Start backend
+                    cd ${DEPLOY_DIR}/backend && nohup java -jar *.jar > backend.log 2>&1 &
+                    
+                    # Start frontend server (if using Node.js server)
+                    # cd ${DEPLOY_DIR}/frontend && nohup npx serve -s . -p 3000 > frontend.log 2>&1 &
+                "
+            """
         }
     }
+}
 
     post {
         success {
@@ -60,4 +76,5 @@ pipeline {
             echo 'Échec du pipeline.'
         }
     }
+
 }
