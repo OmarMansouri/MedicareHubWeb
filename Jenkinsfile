@@ -13,7 +13,7 @@ triggers {
  
         stage('Build Backend (Spring Boot)') {
 			steps {
-				dir('proto-back') {
+				dir('Ing2-proto/Ing2-proto/proto-back) {
 					echo 'Building Spring Boot backend...'
                     sh 'mvn clean package -DskipTests'
                 }
@@ -22,7 +22,7 @@ triggers {
  
         stage('Build Frontend (JavaScript)') {
 			steps {
-				dir('proto-front') {
+				dir('Ing2-proto/Ing2-proto/proto-front') {
 					echo 'Building frontend JavaScript...'
                     sh 'npm install'
                     sh 'npm run build'
@@ -37,3 +37,4 @@ triggers {
         }
     }
 }
+
