@@ -17,7 +17,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('Ing2-proto/Ing2-proto/proto-back') {
-                    sh 'mvn clean package -DskipTests' 
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -40,20 +40,15 @@ pipeline {
 
         stage('Deploy to Integration VM') {
             steps {
-                // Copier backend et frontend via rsync
+                echo 'Transfert du backend et frontend vers la VM...'
                 sh "rsync -avz Ing2-proto/Ing2-proto/proto-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
                 sh "rsync -avz Ing2-proto/Ing2-proto/proto-front/build/ ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
-                // Redémarrer backend et frontend sur la VM
-                sh """
-                ssh ${SSH_USER}@${SSH_HOST} '
-                    pkill -f java || true
-                    nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &
-                    
-                    pkill -f serve || true
-                    nohup serve -s ${DEPLOY_DIR}/frontend > ${DEPLOY_DIR}/frontend/logs.log 2>&1 &
-                '
-                """
+                echo 'Redémarrage des services sur la VM...'
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true'"
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f serve || true'"
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'nohup serve -s ${DEPLOY_DIR}/frontend > ${DEPLOY_DIR}/frontend/logs.log 2>&1 &'"
             }
         }
     }
