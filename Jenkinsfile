@@ -45,10 +45,18 @@ pipeline {
                 sh "rsync -avz Ing2-proto/Ing2-proto/proto-front/build/ ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
                 echo 'Redémarrage des services sur la VM...'
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true'"
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f serve || true'"
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'nohup serve -s ${DEPLOY_DIR}/frontend > ${DEPLOY_DIR}/frontend/logs.log 2>&1 &'"
+                sh """
+                ssh ${SSH_USER}@${SSH_HOST} '
+                    set +e
+                    # Stopper les services existants (ignorer les erreurs)
+                    pkill -f java
+                    pkill -f serve
+
+                    # Lancer backend et frontend
+                    nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &
+                    nohup serve -s ${DEPLOY_DIR}/frontend > ${DEPLOY_DIR}/frontend/logs.log 2>&1 &
+                '
+                """
             }
         }
     }
