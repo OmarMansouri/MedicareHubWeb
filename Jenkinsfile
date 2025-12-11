@@ -47,16 +47,8 @@ pipeline {
 
 
                 // Redémarrer le backend sur la VM
-                sh """
-                    ssh ${SSH_USER}@${SSH_HOST} << 'EOF'
-                    cd ${DEPLOY_DIR}/backend
-                    pkill -f proto-back || true
-                    sleep 2
-                    nohup java -jar proto-back-1.0-SNAPSHOT.jar > logs.log 2>&1 &
-                    sleep 5
-                    echo "Backend démarré"
-                EOF
-                """
+                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true && nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
+            }
         }
     }
 
