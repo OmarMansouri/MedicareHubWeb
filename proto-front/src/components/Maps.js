@@ -1,7 +1,12 @@
 import React from "react";
-import '../styles/Maps.css';
+import "../styles/Maps.css";
+import L from "leaflet";
 import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
-export default function App() {
+const position = [51.505, -0.09];
+let DefaultIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+});
+export default function Maps() {
   return (
     <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
       <TileLayer
@@ -16,4 +21,5 @@ export default function App() {
     </MapContainer>
   );
 }
-    
+
+L.Marker.prototype.options.icon = DefaultIcon;
