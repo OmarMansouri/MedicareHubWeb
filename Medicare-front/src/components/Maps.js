@@ -10,34 +10,51 @@ import {
   Circle,
 } from "react-leaflet";
 
+// 🧩 Icône bleue standard Leaflet
 const DefaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
-
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const center = [48.805652, 2.422507]; 
+const center = [48.805652, 2.422507]; // 📍 Paris Est (exemple)
 
 export default function Maps() {
+  // 🌫️ Données de pollution et météo
   const [aqiData, setAqiData] = useState(null);
+  const [weather, setWeather] = useState(null);
 
   useEffect(() => {
     const [lat, lon] = center;
+
+    // 1️⃣ Requête qualité de l’air (backend /api/air)
     fetch(`http://localhost:8081/api/air/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") {
           setAqiData(data.data);
         } else {
-          console.error("Erreur API :", data);
+          console.error("Erreur API Air :", data);
         }
       })
-      .catch((err) => console.error("Erreur réseau :", err));
+      .catch((err) => console.error("Erreur réseau Air :", err));
+
+    // 2️⃣ Requête météo (backend /api/weather)
+    fetch(`http://localhost:8081/api/weather/coords?lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.current) {
+          setWeather(data.current);
+        } else {
+          console.error("Erreur API Météo :", data);
+        }
+      })
+      .catch((err) => console.error("Erreur réseau Météo :", err));
   }, []);
 
+  // 🎨 Couleur selon l’AQI
   const getColor = (aqi) => {
     if (aqi <= 50) return "green";
     if (aqi <= 100) return "yellow";
@@ -47,6 +64,7 @@ export default function Maps() {
     return "maroon";
   };
 
+  // 🔖 Texte qualité d’air
   const getCategory = (aqi) => {
     if (aqi <= 50) return "🟢 Bonne";
     if (aqi <= 100) return "🟡 Modérée";
@@ -54,56 +72,117 @@ export default function Maps() {
     return "🔴 Mauvaise";
   };
 
+  // 🌦️ Traduction du code météo Open‑Meteo
+  const getWeatherDesc = (code) => {
+    const map = {
+      0: "Ciel clair ☀️",
+      1: "Principalement clair 🌤️",
+      2: "Partiellement nuageux ⛅",
+      3: "Couvert ☁️",
+      45: "Brouillard 🌫️",
+      48: "Brouillard givrant 🧊",
+      51: "Bruine légère 🌦️",
+      61: "Pluie faible 🌧️",
+      63: "Pluie modérée 🌧️",
+      65: "Pluie forte 🌧️",
+      80: "Averses 🌦️",
+      95: "Orage ⛈️",
+    };
+    return map[code] || "Inconnu";
+  };
+
   return (
-    <MapContainer
-      center={center}
-      zoom={12}
-      style={{ height: "100vh", width: "100%" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <div className="dashboard-container">
 
-      {aqiData && (
-        <>
-          {}
-          <Marker position={center}>
-            <Popup>
-              <strong>{aqiData.city.name}</strong>
-              <br />
-              AQI : <strong>{aqiData.aqi}</strong>
-              <br />
-              Qualité : {getCategory(aqiData.aqi)}
-              <br />
-              Dernière maj : {aqiData.time.s}
-            </Popup>
-          </Marker>
+      {/* 🗺️ Bloc carte */}
+      <div className="map-box">
+        <MapContainer
+          center={center}
+          zoom={12}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">
+            OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-          {}
-          <LayerGroup>
-            <Circle
-              center={center}
-              pathOptions={{
-                fillColor: getColor(aqiData.aqi),
-                color: getColor(aqiData.aqi),
-              }}
-              radius={1000}
-              fillOpacity={0.25}
-            />
-            <Circle
-              center={center}
-              pathOptions={{
-                fillColor: getColor(aqiData.aqi),
-                color: getColor(aqiData.aqi),
-              }}
-              radius={250}
-              stroke={false}
-              fillOpacity={0.4}
-            />
-          </LayerGroup>
-        </>
-      )}
-    </MapContainer>
+          {aqiData && (
+            <>
+              {/* 📍 Marqueur AQI */}
+              <Marker position={center}>
+                <Popup>
+                  <strong>{aqiData.city.name}</strong>
+                  <br />
+                  AQI : <strong>{aqiData.aqi}</strong>
+                  <br />
+                  Qualité : {getCategory(aqiData.aqi)}
+                  <br />
+                  Dernière maj : {aqiData.time.s}
+                </Popup>
+              </Marker>
+
+              {/* Cercles colorés autour du point */}
+              <LayerGroup>
+                <Circle
+                  center={center}
+                  pathOptions={{
+                    fillColor: getColor(aqiData.aqi),
+                    color: getColor(aqiData.aqi),
+                  }}
+                  radius={1000}
+                  fillOpacity={0.25}
+                />
+                <Circle
+                  center={center}
+                  pathOptions={{
+                    fillColor: getColor(aqiData.aqi),
+                    color: getColor(aqiData.aqi),
+                  }}
+                  radius={250}
+                  stroke={false}
+                  fillOpacity={0.4}
+                />
+              </LayerGroup>
+            </>
+          )}
+        </MapContainer>
+      </div>
+
+      {/* 📊 Bloc d’informations */}
+      <div className="info-card">
+        {/* 🔹 Air Quality */}
+        <h3>Qualité de l’air</h3>
+        {aqiData ? (
+          <>
+            <p><strong>Ville :</strong> {aqiData.city.name}</p>
+            <p>
+              <strong>AQI :</strong>{" "}
+              <span style={{ color: getColor(aqiData.aqi) }}>
+                {aqiData.aqi}
+              </span>
+            </p>
+            <p><strong>Qualité :</strong> {getCategory(aqiData.aqi)}</p>
+            <p><strong>Dernière maj :</strong> {aqiData.time.s}</p>
+          </>
+        ) : (
+          <p>Chargement des données de qualité de l’air...</p>
+        )}
+
+        <hr />
+
+        {/* 🔹 Weather */}
+        <h3>Météo</h3>
+        {weather ? (
+          <>
+            <p><strong>Température :</strong> {weather.temperature_2m} °C 🌡️</p>
+            <p><strong>Vent :</strong> {weather.wind_speed_10m} km/h 💨</p>
+            <p><strong>Conditions :</strong> {getWeatherDesc(weather.weather_code)}</p>
+          </>
+        ) : (
+          <p>Chargement des données météo...</p>
+        )}
+      </div>
+    </div>
   );
 }
