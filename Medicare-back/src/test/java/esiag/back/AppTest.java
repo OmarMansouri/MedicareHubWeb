@@ -1,4 +1,4 @@
-package esiag.back;
+package medicare.back;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
