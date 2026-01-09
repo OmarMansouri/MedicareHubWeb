@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build Backend') {
             steps {
-                dir('MedicareHubWeb/Medicare-back') {
+                dir('Medicare-back') {
                     sh 'mvn clean package -DskipTests' 
                 }
             }
@@ -61,3 +61,4 @@ pipeline {
         }
     }
 }
+
