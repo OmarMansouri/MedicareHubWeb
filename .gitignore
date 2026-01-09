@@ -1,0 +1,19 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Java
+*.class
+target/
+out/
+
+# Node / Front
+node_modules/
+dist/
+.build/
+
+# Environnement
+.env
+
+# OS
+.DS_Store
