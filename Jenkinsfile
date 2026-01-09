@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build Frontend') {
             steps {
-                dir('MedicareHubWeb/Medicare-front') {
+                dir('Medicare-front') {
                     sh 'npm install'
                     sh 'npm run build'
                 }
@@ -33,8 +33,8 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'MedicareHubWeb/Medicare-back/target/*.jar', fingerprint: true
-                archiveArtifacts artifacts: 'MedicareHubWeb/Medicare-front/build/**', fingerprint: true
+                archiveArtifacts artifacts: 'Medicare-back/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'Medicare-front/build/**', fingerprint: true
 
             }
         }
@@ -61,4 +61,5 @@ pipeline {
         }
     }
 }
+
 
