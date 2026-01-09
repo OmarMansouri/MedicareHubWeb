@@ -1,5 +1,51 @@
-@import url("~leaflet/dist/leaflet.css");
-.leaflet-container{
-    width: 100%;
-    height: 100vh;
+@import "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+
+.dashboard-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 25px;
+  padding: 30px;
+}
+
+/* 📦 Bloc carte */
+.map-box {
+  width: 600px;
+  height: 400px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 📋 Bloc infos */
+.info-card {
+  background: #fff;
+  width: 280px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.info-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #222;
+}
+
+.info-card p {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+/* 📱 Version mobile */
+@media (max-width: 900px) {
+  .dashboard-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .map-box,
+  .info-card {
+    width: 90%;
+  }
 }
