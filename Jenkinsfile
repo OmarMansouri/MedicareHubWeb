@@ -42,8 +42,8 @@ pipeline {
         stage('Deploy to Integration VM') {
             steps {
                 // Copier le backend et frontend 
-                sh "scp MedicareHubWeb/Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
-                sh "scp -r MedicareHubWeb/Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
+                sh "scp Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
+                sh "scp -r Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
 
                 // Redémarrer le backend sur la VM
@@ -61,5 +61,6 @@ pipeline {
         }
     }
 }
+
 
 
