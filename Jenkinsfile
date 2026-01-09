@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build Backend') {
             steps {
-                dir('Ing2-proto/Ing2-proto/proto-back') {
+                dir('MedicareHubWeb/Medicare-back') {
                     sh 'mvn clean package -DskipTests' 
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
 
         stage('Build Frontend') {
             steps {
-                dir('Ing2-proto/Ing2-proto/proto-front') {
+                dir('MedicareHubWeb/Medicare-front') {
                     sh 'npm install'
                     sh 'npm run build'
                 }
@@ -33,8 +33,8 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'Ing2-proto/Ing2-proto/proto-back/target/*.jar', fingerprint: true
-                archiveArtifacts artifacts: 'Ing2-proto/Ing2-proto/proto-front/build/**', fingerprint: true
+                archiveArtifacts artifacts: 'MedicareHubWeb/Medicare-back/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'MedicareHubWeb/Medicare-front/build/**', fingerprint: true
 
             }
         }
@@ -42,8 +42,8 @@ pipeline {
         stage('Deploy to Integration VM') {
             steps {
                 // Copier le backend et frontend 
-                sh "scp Ing2-proto/Ing2-proto/proto-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
-                sh "scp -r Ing2-proto/Ing2-proto/proto-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
+                sh "scp MedicareHubWeb/Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
+                sh "scp -r MedicareHubWeb/Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
 
                 // Redémarrer le backend sur la VM
