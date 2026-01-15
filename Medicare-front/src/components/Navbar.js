@@ -19,6 +19,11 @@ export default function Navbar() {
           Maps
         </Link>
       </li>
+      <li className="nav-item">
+        <Link className="nav-link" to="/prediagnostic">
+          Prédiagnostic
+        </Link>  
+      </li>
     </ul>
   );
 }

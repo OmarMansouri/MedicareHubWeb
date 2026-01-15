@@ -16,6 +16,7 @@ export default function Router() {
           <Route path="/sample" element={<Sample />} />
           <Route path="*" element={<NotFound />} />
           <Route path="/maps" element={<Maps />} />
+          <Route path="/prediagnostic" element={<Prediagnostic />} />
         </Routes>
       </div>
     </BrowserRouter>
