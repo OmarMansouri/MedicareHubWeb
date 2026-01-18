@@ -5,6 +5,7 @@ import Sample from "./Sample";
 import Navbar from "./Navbar";
 import NotFound from "./NotFound";
 import Maps from "./Maps";
+import Prediagnostic from "./Prediagnostic";
 
 export default function Router() {
   return (
