@@ -20,7 +20,21 @@
     <java.version>17</java.version>
     <maven.test.skip>true</maven.test.skip>
   </properties>
+<profiles>
+    <profile>
+        <id>dev</id>
+        <properties>
+            <spring.profiles.active>dev</spring.profiles.active>
+        </properties>
+    </profile>
 
+    <profile>
+        <id>prod</id>
+        <properties>
+            <spring.profiles.active>prod</spring.profiles.active>
+        </properties>
+    </profile>
+</profiles>
 
 
   <repositories>
