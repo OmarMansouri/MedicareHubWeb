@@ -6,7 +6,10 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/weather")
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "http://172.31.250.86:3000"
+})
 public class WeatherController {
 
     private static final String BASE_URL = "https://api.open-meteo.com/v1/forecast";
@@ -27,7 +30,7 @@ public class WeatherController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-           
+
             e.printStackTrace();
             return ResponseEntity.internalServerError()
                     .body("Erreur lors de la récupération météo : " + e.getMessage());
