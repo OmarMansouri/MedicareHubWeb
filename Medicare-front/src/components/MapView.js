@@ -35,40 +35,23 @@ function ClickHandler({ onClick }) {
 }
 
 export default function MapView({ children, onPositionChange }) {
-  const [position, setPosition] = useState(null);
-  const [error, setError] = useState(null);
+  const defaultCenter = [48.85, 2.35];
+
+  const [position, setPosition] = useState(defaultCenter);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError("La géolocalisation n’est pas supportée.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        setPosition(coords);
-        onPositionChange?.(coords); 
-        setError(null);
-      },
-      (err) => {
-        console.error("Erreur géoloc :", err.message);
-        setError("Impossible de récupérer votre position.");
-      }
-    );
+    onPositionChange?.(defaultCenter);
   }, [onPositionChange]);
 
   const handleClick = (coords) => {
     setPosition(coords);
-    onPositionChange?.(coords); 
+    onPositionChange?.(coords);
   };
-
-  const defaultCenter = [20, 0];
 
   return (
     <MapContainer
-      center={position || defaultCenter}
-      zoom={position ? 13 : 2}
+      center={position}
+      zoom={13}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
@@ -81,6 +64,7 @@ export default function MapView({ children, onPositionChange }) {
       <RecenterMap position={position} />
       <ClickHandler onClick={handleClick} />
 
+     
       {position && (
         <Marker position={position}>
           <Popup>
@@ -92,25 +76,8 @@ export default function MapView({ children, onPositionChange }) {
         </Marker>
       )}
 
-      {children}
 
-      {error && (
-        <div
-          style={{
-            position: "absolute",
-            top: 10,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "rgba(255,255,255,0.9)",
-            padding: "6px 12px",
-            borderRadius: "6px",
-            color: "red",
-            zIndex: 1000,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {children}
     </MapContainer>
   );
 }
