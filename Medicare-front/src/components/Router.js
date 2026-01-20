@@ -1,23 +1,26 @@
 import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import App from "./App";
-import Sample from "./Sample";
-import Navbar from "./Navbar";
-import NotFound from "./NotFound";
-import Maps from "./Maps";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import App from "./App"; 
+import Navbar from "./Navbar"; 
+import NotFound from "./NotFound"; 
+import Dashboard from "../pages/Dashboard"; 
 
 export default function Router() {
   return (
     <BrowserRouter>
-      <div>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/sample" element={<Sample />} />
-          <Route path="*" element={<NotFound />} />
-          <Route path="/maps" element={<Maps />} />
-        </Routes>
-      </div>
+      <Navbar />
+
+      <Routes>
+        {}
+        <Route path="/" element={<App />} />
+
+        {}
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </BrowserRouter>
   );
 }

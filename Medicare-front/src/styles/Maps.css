@@ -8,16 +8,14 @@
   padding: 30px;
 }
 
-/* 📦 Bloc carte */
 .map-box {
   width: 600px;
-  height: 400px;
+  height: 200px;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* 📋 Bloc infos */
 .info-card {
   background: #fff;
   width: 280px;
@@ -37,7 +35,6 @@
   font-size: 15px;
 }
 
-/* 📱 Version mobile */
 @media (max-width: 900px) {
   .dashboard-container {
     flex-direction: column;
