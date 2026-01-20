@@ -19,8 +19,14 @@ export default function Navbar() {
           </li>
 
           <li className="nav-item">
-            <Link className={linkClass("/dashboard")} to="/dashboard">
+            <Link className={linkClass("/Maps")} to="/Maps">
               Maps
+            </Link>
+          </li>
+
+          <li className="nav-item">
+            <Link className={linkClass("/prediagnostic")} to="/prediagnostic">
+              Prédiagnostic
             </Link>
           </li>
         </ul>
