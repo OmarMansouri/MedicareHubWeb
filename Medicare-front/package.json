@@ -1,6 +1,9 @@
 {
+  
   "name": "proto-front",
   "version": "0.1.0",
+  "proxy": "http://localhost:8081",
+
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
