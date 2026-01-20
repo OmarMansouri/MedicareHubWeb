@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-
+const API_BASE =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8081"      
+    : "http://172.31.250.86:8081"; 
 export default function WeatherCard({ center }) {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +30,7 @@ export default function WeatherCard({ center }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    fetch(`/api/weather/coords?lat=${lat}&lon=${lon}`)
+    fetch(`${API_BASE}/api/weather/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) =>
         data.current ? setWeather(data.current) : setWeather(null)

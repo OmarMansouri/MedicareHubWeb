@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Circle, Popup } from "react-leaflet";
-
+const API_BASE =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8081"      
+    : "http://172.31.250.86:8081"; 
 export default function PlantsLayer({ center, radius = 5 }) {
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,7 +14,7 @@ export default function PlantsLayer({ center, radius = 5 }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    const url = `/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`;
+    const url = `${API_BASE}/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`;
     console.log("Requête :", url);
 
     fetch(url)

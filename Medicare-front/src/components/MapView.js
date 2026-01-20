@@ -19,6 +19,8 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+const DEFAULT_CENTER = [48.85, 2.35];
+
 function RecenterMap({ position }) {
   const map = useMap();
   if (position) map.setView(position, 13);
@@ -35,40 +37,22 @@ function ClickHandler({ onClick }) {
 }
 
 export default function MapView({ children, onPositionChange }) {
-  const [position, setPosition] = useState(null);
-  const [error, setError] = useState(null);
+  const [position, setPosition] = useState(DEFAULT_CENTER);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError("La géolocalisation n’est pas supportée.");
-      return;
+    if (position) {
+      onPositionChange?.(position);
     }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        setPosition(coords);
-        onPositionChange?.(coords); 
-        setError(null);
-      },
-      (err) => {
-        console.error("Erreur géoloc :", err.message);
-        setError("Impossible de récupérer votre position.");
-      }
-    );
-  }, [onPositionChange]);
+  }, [position, onPositionChange]);
 
   const handleClick = (coords) => {
     setPosition(coords);
-    onPositionChange?.(coords); 
   };
-
-  const defaultCenter = [20, 0];
 
   return (
     <MapContainer
-      center={position || defaultCenter}
-      zoom={position ? 13 : 2}
+      center={position}
+      zoom={13}
       style={{ height: "100%", width: "100%" }}
     >
       <TileLayer
@@ -92,25 +76,8 @@ export default function MapView({ children, onPositionChange }) {
         </Marker>
       )}
 
-      {children}
 
-      {error && (
-        <div
-          style={{
-            position: "absolute",
-            top: 10,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "rgba(255,255,255,0.9)",
-            padding: "6px 12px",
-            borderRadius: "6px",
-            color: "red",
-            zIndex: 1000,
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {children}
     </MapContainer>
   );
 }

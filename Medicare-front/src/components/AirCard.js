@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
 
+const API_BASE =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8081"      
+    : "http://172.31.250.86:8081"; 
+
 export default function AirCard({ center }) {
   const [aqiData, setAqiData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +30,7 @@ export default function AirCard({ center }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    fetch(`/api/air/coords?lat=${lat}&lon=${lon}`)
+    fetch(`${API_BASE}/api/air/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") setAqiData(data.data);

@@ -17,7 +17,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('Medicare-back') {
-                    sh 'mvn clean package -DskipTests' 
+            sh 'mvn clean package -Pprod -DskipTests'
                 }
             }
         }
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 dir('Medicare-front') {
                     sh 'npm install'
-                    sh 'npm run build'
+                    sh 'CI= npm run build'
                 }
             }
         }
@@ -35,19 +35,27 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'Medicare-back/target/*.jar', fingerprint: true
                 archiveArtifacts artifacts: 'Medicare-front/build/**', fingerprint: true
-
             }
         }
 
         stage('Deploy to Integration VM') {
             steps {
-                // Copier le backend et frontend 
+                sh """
+                    ssh ${SSH_USER}@${SSH_HOST} '
+                        mkdir -p ${DEPLOY_DIR}/backend
+                        mkdir -p ${DEPLOY_DIR}/frontend
+                    '
+                """
+
                 sh "scp Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
                 sh "scp -r Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
 
-
-                // Redémarrer le backend sur la VM
-                sh "ssh ${SSH_USER}@${SSH_HOST} 'pkill -f java || true && nohup java -jar ${DEPLOY_DIR}/backend/*.jar > ${DEPLOY_DIR}/backend/logs.log 2>&1 &'"
+                sh """
+                    ssh ${SSH_USER}@${SSH_HOST} '
+                        chmod +x /home/medicare/run.sh
+                        /home/medicare/run.sh
+                    '
+                """
             }
         }
     }
@@ -61,6 +69,3 @@ pipeline {
         }
     }
 }
-
-
-

@@ -1,0 +1,7 @@
+package medicare.back.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import medicare.back.models.DiseaseSymptom;
+
+public interface DiseaseSymptomRepository extends JpaRepository<DiseaseSymptom, Long> {
+}
