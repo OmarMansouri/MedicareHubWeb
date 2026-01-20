@@ -1,25 +1,63 @@
 package medicare.back.controllers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import medicare.back.models.Disease;
 import medicare.back.models.Symptom;
+import medicare.back.services.MedicalService;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "*") 
 public class MedicalController {
+    private MedicalService service;
 
-    private final List<Symptom> symptomes = Arrays.asList(
+    public MedicalController(MedicalService service) {
+        this.service = service;
+    }
+
+    @GetMapping("/symptomes")
+    public List<Symptom> getSymptomes() {
+        return service.getAllSymptoms();
+    }
+
+    @PostMapping("/prochaineQuestion")
+    public Map<String, Object> prochaineQuestion(
+            @RequestBody Map<String, List<Long>> body) {
+
+        List<Long> presents = body.get("symptomesPresents");
+        List<Long> absents = body.get("symptomesAbsents");
+        
+        if (presents == null) presents = new ArrayList<>();
+        if (absents == null) absents = new ArrayList<>();
+
+        Symptom next = service.getNextQuestion(presents, absents);
+
+        Map<String, Object> response = new HashMap<>();
+
+        if (next == null) {
+            response.put("question", null);
+            return response;
+        }    
+
+        Map<String, Object> question = new HashMap<>();
+        question.put("symptomeId", next.getId());
+        question.put("texte", "Avez-vous " + next.getNom() + " ?");
+
+        return Map.of("question", question);
+    }    
+
+
+    /*private final List<Symptom> symptomes = Arrays.asList(
         new Symptom(1, "Fièvre"),
         new Symptom(2, "Toux"),
         new Symptom(3, "Fatigue"),
@@ -98,5 +136,5 @@ public class MedicalController {
         question.put("texte", "Avez-vous " + s.getNom().toLowerCase() + " ?");
 
         return Map.of("question", question);
-    }
+    }*/
 }

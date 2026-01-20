@@ -1,7 +1,39 @@
 package medicare.back.models;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
 public class Symptom {
-    private int id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nom;
+
+    public Symptom() {}
+
+    public Symptom(String nom) {
+        this.nom = nom;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+
+    /*private int id;
     private String nom;
     
     public Symptom() {}
@@ -10,5 +42,5 @@ public class Symptom {
     public int getId() { return id; }
     public String getNom() { return nom; }
     public void setId(int id) { this.id = id; }
-    public void setNom(String nom) { this.nom = nom; }
+    public void setNom(String nom) { this.nom = nom; }*/
 }
