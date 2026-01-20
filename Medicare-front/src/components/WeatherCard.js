@@ -27,7 +27,7 @@ export default function WeatherCard({ center }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    fetch(`http://localhost:8081/api/weather/coords?lat=${lat}&lon=${lon}`)
+    fetch(`http://172.31.250.86:3000/api/weather/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) =>
         data.current ? setWeather(data.current) : setWeather(null)
