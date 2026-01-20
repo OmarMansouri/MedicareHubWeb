@@ -25,7 +25,7 @@ export default function AirCard({ center }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    fetch(`http://172.31.250.86:3000/api/air/coords?lat=${lat}&lon=${lon}`)
+    fetch(`http://localhost:8081/api/air/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") setAqiData(data.data);

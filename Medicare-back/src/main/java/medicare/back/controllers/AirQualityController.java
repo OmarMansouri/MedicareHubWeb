@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/air")
-@CrossOrigin(origins = "http://172.31.250.86:3000") 
+@CrossOrigin(origins = "http://localhost:3000") 
 public class AirQualityController {
 
     private static final String TOKEN = "c94133c79e52620ebfe541a6e18d662a936ec346"; 
