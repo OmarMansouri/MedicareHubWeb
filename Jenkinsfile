@@ -8,6 +8,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/OmarMansouri/MedicareHubWeb.git'
@@ -17,7 +18,8 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('Medicare-back') {
-                    sh 'mvn clean package -DskipTests' 
+                   
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -26,7 +28,7 @@ pipeline {
             steps {
                 dir('Medicare-front') {
                     sh 'npm install'
-                    sh 'npm run build'
+                    sh 'CI= npm run build'
                 }
             }
         }
@@ -35,24 +37,31 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'Medicare-back/target/*.jar', fingerprint: true
                 archiveArtifacts artifacts: 'Medicare-front/build/**', fingerprint: true
-
             }
         }
 
-stage('Deploy to Integration VM') {
-    steps {
-        sh "scp Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
-        sh "scp -r Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
+        stage('Deploy to Integration VM') {
+            steps {
+                sh """
+                    ssh ${SSH_USER}@${SSH_HOST} '
+                        mkdir -p ${DEPLOY_DIR}/backend
+                        mkdir -p ${DEPLOY_DIR}/frontend
+                    '
+                """
 
-        sh """
-            ssh ${SSH_USER}@${SSH_HOST} '
-                cd ${DEPLOY_DIR}
-                chmod +x run.sh
-                ./run.sh
-            '
-        """
+                sh "scp Medicare-back/target/*.jar ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/backend/"
+                sh "scp -r Medicare-front/build/* ${SSH_USER}@${SSH_HOST}:${DEPLOY_DIR}/frontend/"
+
+                sh """
+                    ssh ${SSH_USER}@${SSH_HOST} '
+                        cd ${DEPLOY_DIR}
+                        chmod +x run.sh
+                        ./run.sh
+                    '
+                """
+            }
+        }
     }
-}
 
     post {
         success {
@@ -63,6 +72,3 @@ stage('Deploy to Integration VM') {
         }
     }
 }
-
-
-
