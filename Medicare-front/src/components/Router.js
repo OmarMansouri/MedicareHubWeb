@@ -6,6 +6,8 @@ import Navbar from "./Navbar";
 import NotFound from "./NotFound";
 import Maps from "./Maps";
 import Prediagnostic from "./Prediagnostic";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "../pages/Dashboard"; 
 
 export default function Router() {
   return (
@@ -20,6 +22,18 @@ export default function Router() {
           <Route path="/prediagnostic" element={<Prediagnostic />} />
         </Routes>
       </div>
+      <Navbar />
+
+      <Routes>
+        {}
+        <Route path="/" element={<App />} />
+
+        {}
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </BrowserRouter>
   );
 }

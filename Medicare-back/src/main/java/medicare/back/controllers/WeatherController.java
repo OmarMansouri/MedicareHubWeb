@@ -6,7 +6,8 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/weather")
-@CrossOrigin(origins = "http://localhost:3000") // autorise les requêtes React (port 3000)
+@CrossOrigin(origins = { "*" })
+
 public class WeatherController {
 
     private static final String BASE_URL = "https://api.open-meteo.com/v1/forecast";
@@ -16,7 +17,6 @@ public class WeatherController {
             @RequestParam double lat,
             @RequestParam double lon) {
         try {
-            // 🔧 URL conforme à la doc Open‑Meteo
             String url = BASE_URL
                     + "?latitude=" + lat
                     + "&longitude=" + lon
@@ -28,7 +28,7 @@ public class WeatherController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            // 🔍 si Open‑Meteo ou le réseau échoue, on renvoie un message clair
+
             e.printStackTrace();
             return ResponseEntity.internalServerError()
                     .body("Erreur lors de la récupération météo : " + e.getMessage());
