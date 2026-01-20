@@ -8,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/OmarMansouri/MedicareHubWeb.git'
@@ -18,7 +17,6 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('Medicare-back') {
-                   
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -54,9 +52,8 @@ pipeline {
 
                 sh """
                     ssh ${SSH_USER}@${SSH_HOST} '
-                        cd ${DEPLOY_DIR}
-                        chmod +x run.sh
-                        ./run.sh
+                        chmod +x /home/medicare/run.sh
+                        /home/medicare/run.sh
                     '
                 """
             }
