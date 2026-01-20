@@ -11,7 +11,7 @@ export default function PlantsLayer({ center, radius = 5 }) {
     const [lat, lon] = center;
     setLoading(true);
 
-    const url = `http://172.31.250.86:3000/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`;
+    const url = `http://localhost:8081/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`;
     console.log("Requête :", url);
 
     fetch(url)
