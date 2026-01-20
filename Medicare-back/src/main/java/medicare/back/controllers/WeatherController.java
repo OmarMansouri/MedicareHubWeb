@@ -6,10 +6,8 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api/weather")
-@CrossOrigin(origins = {
-        "http://localhost:3000",
-        "http://172.31.250.86:3000"
-})
+@CrossOrigin(origins = { "*" })
+
 public class WeatherController {
 
     private static final String BASE_URL = "https://api.open-meteo.com/v1/forecast";
