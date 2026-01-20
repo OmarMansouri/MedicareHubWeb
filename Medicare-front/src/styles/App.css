@@ -1,5 +1,5 @@
 .App-header {
-  background-color: #282c34; /* couleur de fond si l'image ne couvre pas tout */
+  background-color: #282c34; 
   min-height: 100vh;
   width: 100vw;
   display: flex;
@@ -11,6 +11,6 @@
 .App-logo {
   width: 100%;
   height: 100vh;
-  object-fit: cover; /* <-- ici on passe de contain à cover */
+  object-fit: cover; 
   pointer-events: none;
 }

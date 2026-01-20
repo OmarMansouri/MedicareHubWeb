@@ -2,8 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar() {
-  const location = useLocation(); // pour savoir quelle page est active
-
+  const location = useLocation(); 
   const linkClass = (path) =>
     `nav-link ${
       location.pathname === path ? "active fw-bold text-primary" : ""
@@ -15,13 +14,13 @@ export default function Navbar() {
         <ul className="nav">
           <li className="nav-item">
             <Link className={linkClass("/")} to="/">
-              🏠 Home
+              Home
             </Link>
           </li>
 
           <li className="nav-item">
             <Link className={linkClass("/dashboard")} to="/dashboard">
-              🌍 Dashboard
+              Maps
             </Link>
           </li>
         </ul>

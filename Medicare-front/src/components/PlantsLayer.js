@@ -1,42 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { Circle, Popup } from "react-leaflet";
 
-/**
- * PlantsLayer
- * ------------
- * Affiche uniquement les centrales électriques situées
- * dans une zone proche du marqueur principal (AQI/Météo).
- * 
- * Props :
- *  - center : [latitude, longitude]
- *  - radius : rayon en kilomètres (par défaut 200 km)
- */
-export default function PlantsLayer({ center, radius = 200 }) {
+export default function PlantsLayer({ center, radius = 5 }) {
   const [plants, setPlants] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!center) return; // évite le fetch tant que le centre n'est pas défini
+    if (!center) return; 
 
     const [lat, lon] = center;
+    setLoading(true);
 
-    fetch(`http://localhost:8081/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`)
+    const url = `http://localhost:8081/api/plants?lat=${lat}&lon=${lon}&radiusKm=${radius}`;
+    console.log("Requête :", url);
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        console.log("✅ Centrales reçues :", data);
-        if (Array.isArray(data)) {
-          setPlants(data);
-        } else {
-          console.warn("⚠️ Réponse inattendue de l'API:", data);
+        if (!Array.isArray(data)) {
+          console.warn("⚠️ Réponse inattendue :", data);
           setPlants([]);
+          return;
         }
+
+        const valid = data.filter(
+          (p) =>
+            typeof p.latitude === "number" &&
+            typeof p.longitude === "number" &&
+            !Number.isNaN(p.latitude) &&
+            !Number.isNaN(p.longitude) &&
+            Math.abs(p.latitude) <= 90 &&
+            Math.abs(p.longitude) <= 180
+        );
+
+        console.log(` ${valid.length} centrales reçues dans ${radius} km`);
+        setPlants(valid);
       })
       .catch((err) => {
-        console.error("Erreur lors du chargement des centrales:", err);
+        console.error(" Erreur lors du chargement des centrales :", err);
         setPlants([]);
-      });
+      })
+      .finally(() => setLoading(false));
   }, [center, radius]);
 
-  // 🎨 Couleur des cercles selon les émissions estimées
   const getPlantColor = (co2) => {
     if (!co2) return "gray";
     if (co2 < 100000) return "green";
@@ -44,30 +50,56 @@ export default function PlantsLayer({ center, radius = 200 }) {
     return "red";
   };
 
+  if (loading)
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          background: "rgba(255,255,255,0.9)",
+          padding: "5px 10px",
+          borderRadius: "6px",
+          zIndex: 1000,
+        }}
+      >
+        Chargement des centrales...
+      </div>
+    );
+
+  if (!loading && (!plants || plants.length === 0))
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          background: "rgba(255,255,255,0.9)",
+          padding: "5px 10px",
+          borderRadius: "6px",
+          fontSize: "14px",
+          zIndex: 1000,
+        }}
+      >
+        Aucune centrale trouvée dans un rayon de {radius} km.
+      </div>
+    );
+
   return (
     <>
-      {plants.length === 0 && (
-        <p
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            backgroundColor: "rgba(255,255,255,0.9)",
-            padding: "5px 10px",
-            borderRadius: "6px",
-            fontSize: "14px",
-          }}
-        >
-          Aucune centrale trouvée dans cette zone.
-        </p>
-      )}
-
-      {Array.isArray(plants) &&
-        plants.map((p, i) => (
+      {plants
+        .filter(
+          (p) =>
+            typeof p.latitude === "number" &&
+            typeof p.longitude === "number" &&
+            !Number.isNaN(p.latitude) &&
+            !Number.isNaN(p.longitude)
+        )
+        .map((p, i) => (
           <Circle
             key={i}
             center={[p.latitude, p.longitude]}
-            radius={8000} // ~8 km de rayon visuel
+            radius={800} 
             pathOptions={{
               fillColor: getPlantColor(p.emissionCo2Tons),
               color: getPlantColor(p.emissionCo2Tons),

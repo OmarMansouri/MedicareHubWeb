@@ -10,7 +10,6 @@ import {
   Circle,
 } from "react-leaflet";
 
-// 🧩 Icône bleue standard Leaflet
 const DefaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconSize: [25, 41],
@@ -19,17 +18,15 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const center = [48.805652, 2.422507]; // 📍 Paris Est (exemple)
+const center = [48.805652, 2.422507];
 
 export default function Maps() {
-  // 🌫️ Données de pollution et météo
   const [aqiData, setAqiData] = useState(null);
   const [weather, setWeather] = useState(null);
 
   useEffect(() => {
     const [lat, lon] = center;
 
-    // 1️⃣ Requête qualité de l’air (backend /api/air)
     fetch(`http://localhost:8081/api/air/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
@@ -41,7 +38,6 @@ export default function Maps() {
       })
       .catch((err) => console.error("Erreur réseau Air :", err));
 
-    // 2️⃣ Requête météo (backend /api/weather)
     fetch(`http://localhost:8081/api/weather/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
@@ -54,7 +50,6 @@ export default function Maps() {
       .catch((err) => console.error("Erreur réseau Météo :", err));
   }, []);
 
-  // 🎨 Couleur selon l’AQI
   const getColor = (aqi) => {
     if (aqi <= 50) return "green";
     if (aqi <= 100) return "yellow";
@@ -64,15 +59,13 @@ export default function Maps() {
     return "maroon";
   };
 
-  // 🔖 Texte qualité d’air
   const getCategory = (aqi) => {
-    if (aqi <= 50) return "🟢 Bonne";
+    if (aqi <= 50) return " Bonne";
     if (aqi <= 100) return "🟡 Modérée";
     if (aqi <= 150) return "🟠 Mauvaise (sensibles)";
     return "🔴 Mauvaise";
   };
 
-  // 🌦️ Traduction du code météo Open‑Meteo
   const getWeatherDesc = (code) => {
     const map = {
       0: "Ciel clair ☀️",
@@ -93,8 +86,7 @@ export default function Maps() {
 
   return (
     <div className="dashboard-container">
-
-      {/* 🗺️ Bloc carte */}
+      {}
       <div className="map-box">
         <MapContainer
           center={center}
@@ -109,7 +101,7 @@ export default function Maps() {
 
           {aqiData && (
             <>
-              {/* 📍 Marqueur AQI */}
+              {}
               <Marker position={center}>
                 <Popup>
                   <strong>{aqiData.city.name}</strong>
@@ -122,7 +114,7 @@ export default function Maps() {
                 </Popup>
               </Marker>
 
-              {/* Cercles colorés autour du point */}
+              {}
               <LayerGroup>
                 <Circle
                   center={center}
@@ -149,21 +141,27 @@ export default function Maps() {
         </MapContainer>
       </div>
 
-      {/* 📊 Bloc d’informations */}
+      {}
       <div className="info-card">
-        {/* 🔹 Air Quality */}
+        {}
         <h3>Qualité de l’air</h3>
         {aqiData ? (
           <>
-            <p><strong>Ville :</strong> {aqiData.city.name}</p>
+            <p>
+              <strong>Ville :</strong> {aqiData.city.name}
+            </p>
             <p>
               <strong>AQI :</strong>{" "}
               <span style={{ color: getColor(aqiData.aqi) }}>
                 {aqiData.aqi}
               </span>
             </p>
-            <p><strong>Qualité :</strong> {getCategory(aqiData.aqi)}</p>
-            <p><strong>Dernière maj :</strong> {aqiData.time.s}</p>
+            <p>
+              <strong>Qualité :</strong> {getCategory(aqiData.aqi)}
+            </p>
+            <p>
+              <strong>Dernière maj :</strong> {aqiData.time.s}
+            </p>
           </>
         ) : (
           <p>Chargement des données de qualité de l’air...</p>
@@ -171,13 +169,20 @@ export default function Maps() {
 
         <hr />
 
-        {/* 🔹 Weather */}
+        {}
         <h3>Météo</h3>
         {weather ? (
           <>
-            <p><strong>Température :</strong> {weather.temperature_2m} °C 🌡️</p>
-            <p><strong>Vent :</strong> {weather.wind_speed_10m} km/h 💨</p>
-            <p><strong>Conditions :</strong> {getWeatherDesc(weather.weather_code)}</p>
+            <p>
+              <strong>Température :</strong> {weather.temperature_2m} °C 🌡️
+            </p>
+            <p>
+              <strong>Vent :</strong> {weather.wind_speed_10m} km/h 💨
+            </p>
+            <p>
+              <strong>Conditions :</strong>{" "}
+              {getWeatherDesc(weather.weather_code)}
+            </p>
           </>
         ) : (
           <p>Chargement des données météo...</p>
