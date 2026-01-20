@@ -27,7 +27,7 @@ export default function Maps() {
   useEffect(() => {
     const [lat, lon] = center;
 
-    fetch(`http://localhost:8081/api/air/coords?lat=${lat}&lon=${lon}`)
+    fetch(`/api/air/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") {
@@ -38,7 +38,7 @@ export default function Maps() {
       })
       .catch((err) => console.error("Erreur réseau Air :", err));
 
-    fetch(`http://localhost:8081/api/weather/coords?lat=${lat}&lon=${lon}`)
+    fetch(`/api/weather/coords?lat=${lat}&lon=${lon}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.current) {
