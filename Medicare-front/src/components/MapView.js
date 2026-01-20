@@ -19,6 +19,8 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+const DEFAULT_CENTER = [48.85, 2.35];
+
 function RecenterMap({ position }) {
   const map = useMap();
   if (position) map.setView(position, 13);
@@ -35,17 +37,16 @@ function ClickHandler({ onClick }) {
 }
 
 export default function MapView({ children, onPositionChange }) {
-  const defaultCenter = [48.85, 2.35];
-
-  const [position, setPosition] = useState(defaultCenter);
+  const [position, setPosition] = useState(DEFAULT_CENTER);
 
   useEffect(() => {
-    onPositionChange?.(defaultCenter);
-  }, [onPositionChange]);
+    if (position) {
+      onPositionChange?.(position);
+    }
+  }, [position, onPositionChange]);
 
   const handleClick = (coords) => {
     setPosition(coords);
-    onPositionChange?.(coords);
   };
 
   return (
@@ -64,7 +65,6 @@ export default function MapView({ children, onPositionChange }) {
       <RecenterMap position={position} />
       <ClickHandler onClick={handleClick} />
 
-     
       {position && (
         <Marker position={position}>
           <Popup>
