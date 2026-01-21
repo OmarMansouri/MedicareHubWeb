@@ -38,7 +38,7 @@ public class CsvLoader implements CommandLineRunner {
         symptomRepo.deleteAll();
 
         BufferedReader reader = new BufferedReader(
-            new InputStreamReader(new ClassPathResource("diseases.csv").getInputStream())
+            new InputStreamReader(new ClassPathResource("Diseases.csv").getInputStream())
         );
 
         reader.readLine(); // sauter l'en-tête
