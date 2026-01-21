@@ -9,7 +9,7 @@ export default function Prediagnostic() {
   const [etape, setEtape] = useState("selection");
 
   useEffect(() => {
-    axios.get("http://localhost:8081/api/symptomes")
+    axios.get("/api/symptomes")
       .then(res => setSymptomes(res.data))
       .catch(err => console.error(err));
   }, []);
@@ -21,7 +21,7 @@ export default function Prediagnostic() {
   };
 
   const demarrerArbre = async () => {
-    const res = await axios.post("http://localhost:8081/api/prochaineQuestion", { 
+    const res = await axios.post("/api/prochaineQuestion", { 
       symptomesPresents,
       symptomesAbsents: []
     });
@@ -39,7 +39,7 @@ export default function Prediagnostic() {
     setSymptomesPresents(nouveauxPresents);
     setSymptomesAbsents(nouveauxAbsents);
 
-    const res = await axios.post("http://localhost:8081/api/prochaineQuestion", { 
+    const res = await axios.post("/api/prochaineQuestion", { 
       symptomesPresents: nouveauxPresents,
       symptomesAbsents: nouveauxAbsents
     });
