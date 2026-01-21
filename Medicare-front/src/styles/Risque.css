@@ -1,0 +1,34 @@
+.risque-container {
+  padding: 30px;
+}
+
+.risque-box {
+  max-width: 500px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+}
+
+.risque-box input {
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+.risque-box button {
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.erreur {
+  color: red;
+  margin-top: 10px;
+}
+
+.resultat {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
+}

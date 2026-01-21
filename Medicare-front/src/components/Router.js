@@ -6,6 +6,8 @@ import NotFound from "./NotFound";
 import Maps from "./Maps";
 import Prediagnostic from "./Prediagnostic";
 import Dashboard from "../pages/Dashboard";
+import Risque from "./Risque";
+
 
 export default function Router() {
   return (
@@ -15,8 +17,11 @@ export default function Router() {
         <Route path="/" element={<App />} />
         <Route path="/maps" element={<Maps />} />
         <Route path="/prediagnostic" element={<Prediagnostic />} />
+        <Route path="/risque" element={<Risque />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<NotFound />} />
+        
+
       </Routes>
     </BrowserRouter>
   );

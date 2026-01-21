@@ -28,6 +28,12 @@ export default function Navbar() {
               Prédiagnostic
             </Link>
           </li>
+          <li className="nav-item">
+  <Link className={linkClass("/risque")} to="/risque">
+    Risque
+  </Link>
+</li>
+
         </ul>
       </div>
     </nav>
