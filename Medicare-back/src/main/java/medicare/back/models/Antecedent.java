@@ -1,20 +1,25 @@
 package medicare.back.models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+
 @Entity
-@Table(name = "Antecedent")
+@Table(name = "antecedent")
 public class Antecedent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "idantecedent")
     private int idAntecedent;
     
+    @Column(name = "nom")
     private String nom;
+    @Column(name = "type")
     private String type;
     
     public Antecedent() {

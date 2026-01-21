@@ -1,22 +1,26 @@
 package medicare.back.models;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+
 @Entity
-@Table(name = "Profil_Patient")
+@Table(name = "profil_patient")
 public class ProfilPatient {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "idpatient")
+
     private int idPatient;
-    
+    @Column(name = "age")
     private Integer age;
+    @Column(name = "imc")
     private Double imc;
+        @Column(name = "fumeur")
     private Boolean fumeur;
+    @Column(name = "activitephysique")
     private String activitePhysique;
     
     public ProfilPatient() {
