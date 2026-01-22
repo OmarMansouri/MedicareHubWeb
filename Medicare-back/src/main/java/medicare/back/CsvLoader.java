@@ -36,27 +36,36 @@ public class CsvLoader implements CommandLineRunner {
         // On vide les tables avant le chargement
         diseaseRepo.deleteAll();
         symptomRepo.deleteAll();
+        logger.info("Nombre de maladies après deleteAll : {}", diseaseRepo.count());
+        logger.info("Nombre de symptômes après deleteAll : {}", symptomRepo.count());
+
 
         BufferedReader reader = new BufferedReader(
             new InputStreamReader(new ClassPathResource("Diseases.csv").getInputStream())
         );
 
-        reader.readLine(); // sauter l'en-tête
-
+        reader.readLine(); 
         String line;
         while ((line = reader.readLine()) != null) {
+            
             String[] parts = line.split(",");
-            if (parts.length < 3) continue; // sécurité
+            if (parts.length < 3) continue; 
 
             String diseaseName = parts[0];
-            String[] commonSymptoms = parts[1].split(" ");
-            String[] discriminantSymptoms = parts[2].split(" ");
+
+            String commonSymptomsStr = parts[1].replace("\"", "");
+            String[] commonSymptoms = commonSymptomsStr.split(";");
+            
+            String discriminantSymptomsStr = parts[2].replace("\"", "");
+            String[] discriminantSymptoms = discriminantSymptomsStr.split(";");
+
 
             // Récupérer ou créer la maladie
             Disease disease = diseaseRepo.findByNom(diseaseName).orElse(new Disease(diseaseName));
 
             // Ajouter les symptômes communs
             for (String symptomName : commonSymptoms) {
+                symptomName = symptomName.trim();
                 Symptom symptom = symptomRepo.findByNom(symptomName).orElse(null);
                 if (symptom == null) {
                     symptom = new Symptom(symptomName);
@@ -71,6 +80,7 @@ public class CsvLoader implements CommandLineRunner {
 
             // Ajouter les symptômes discriminants
             for (String symptomName : discriminantSymptoms) {
+                symptomName = symptomName.trim();
                 Symptom symptom = symptomRepo.findByNom(symptomName).orElse(null);
                 if (symptom == null) {
                     symptom = new Symptom(symptomName);
@@ -86,6 +96,10 @@ public class CsvLoader implements CommandLineRunner {
             diseaseRepo.save(disease);
             logger.info("Maladie '{}' sauvegardée avec {} symptômes", diseaseName, disease.getSymptoms().size());
         }
+
+        logger.info("Nombre final de maladies en base : {}", diseaseRepo.count());
+        logger.info("Nombre final de symptômes en base : {}", symptomRepo.count());
+
 
         reader.close();
         logger.info("Chargement CSV terminé ");
