@@ -98,6 +98,22 @@ public class MedicalService {
 
         log.info("Maladies possibles restantes : {}", possibles.size());
 
+        //S'arreter si les symptomes présents correspondent entièrement aux symptomes d'une maladie possible
+        for (Disease d : possibles) {
+            boolean tousLesSymptomesPresent = true;
+
+            for (DiseaseSymptom ds : d.getSymptoms()) {
+                if (!symptomsPresents.contains(ds.getSymptom().getId())) {
+                    tousLesSymptomesPresent = false;
+                    break;
+                }
+            }
+
+            if (tousLesSymptomesPresent) {
+                log.info("Arrêt : tous les symptômes de la maladie '{}' sont présents", d.getNom());
+                return null;
+            }
+        }
         
         if (possibles.size() <= 1) {
             log.info("Arrêt : nombre de maladies ≤ 1");

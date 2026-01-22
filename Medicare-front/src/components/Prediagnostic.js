@@ -81,11 +81,12 @@ export default function Prediagnostic() {
 
   return (
     <div style={{ maxWidth: 500, margin: "40px auto", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center", marginBottom: 30 }}>Assistant médical</h2>
-
+      <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 10 }}>Assistant médical</h2>
       {etape === "selection" && (
         <div>
-          <p>Sélectionnez vos symptômes :</p>
+          <p style={{ color: "#555", fontSize: 16, textAlign: "center" }}>
+            Sélectionnez vos symptômes pour commencer
+          </p>
           <div style={{ border: "1px solid #ccc", borderRadius: 8, padding: 15, maxHeight: 300, overflowY: "auto" }}>
             {symptomes.map(s => (
               <label key={s.id} style={{ display: "block", padding: "8px 0", cursor: "pointer", borderBottom: "1px solid #f0f0f0" }}>
@@ -112,7 +113,8 @@ export default function Prediagnostic() {
             Commencer ({symptomesPresents.length} symptôme(s))
           </button>
         </div>
-      )}
+)}
+
 
       {etape === "questions" && questionCourante && (
         <div style={{ marginTop: 30, textAlign: "center" }}>
