@@ -33,16 +33,27 @@ public class MedicalService {
         return symptomRepo.findAll();
     }
 
+    private String getSymptomNames(List<Long> ids) {
+        List<String> noms = new ArrayList<>();
+        for (Long id : ids) {
+            Symptom s = symptomRepo.findById(id).orElse(null);
+            if (s != null) {
+                noms.add(s.getNom());
+            }
+        }
+        return String.join(", ", noms);
+    }
+
+
     public Symptom getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents) {
 
         log.info("DÉBUT de la génération de questions");
-        log.info("Symptômes présents : {}", symptomsPresents);
-        log.info("Symptômes absents  : {}", symptomsAbsents);
+        log.info("Symptômes présents : {}", getSymptomNames(symptomsPresents));
+        log.info("Symptômes absents  : {}", getSymptomNames(symptomsAbsents));
+
 
         List<Disease> possibles = new ArrayList<>();
         List<Disease> diseases = diseaseRepo.findAll();
-
-        log.info("Nombre total de maladies : {}", diseases.size());
 
         for (Disease d : diseases) {
             boolean compatible = true;
@@ -96,7 +107,7 @@ public class MedicalService {
             }
         }
 
-        log.info("Maladies possibles restantes : {}", possibles.size());
+        log.info("Maladies possibles restantes : " + possibles.size() + " " + possibles);
 
         //S'arreter si les symptomes présents correspondent entièrement aux symptomes d'une maladie possible
         for (Disease d : possibles) {
@@ -136,7 +147,7 @@ public class MedicalService {
             }
         }
 
-        log.info("Symptômes discriminants candidats : {}", compteur.size());
+        log.info("Symptômes discriminants candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
 
         
         if (compteur.isEmpty()) {
@@ -152,7 +163,7 @@ public class MedicalService {
                 }
             }
             
-            log.info("Symptômes communs candidats : {}", compteur.size());
+            log.info("Symptômes communs candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
         }
 
         if (compteur.isEmpty()) {
