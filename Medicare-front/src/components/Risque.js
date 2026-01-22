@@ -13,22 +13,36 @@ export default function Risque() {
 
     // fonction appelee quand on clique sur le bouton calculer
     const calculer = () => {
+      console.log("Clic sur le bouton calculer");
+
     setErreur("");
     setResultat(null);
 
         // verifier que l'id du patient est bien saisi
      if (!idPatient) {
+      console.log("Aucun identifiant de patient saisi");
       setErreur("Veuillez entrer un identifiant de patient");
       return;
     }
 
         // appel l'API backend pour calculer le risque
+        console.log("Envoi de la requête au backend pour le patient", idPatient);
       fetch(`http://172.31.250.86:8081/risque/patient/${idPatient}`)
-      .then((res) => res.json())
+      .then((res) => {
+    console.log("Réponse reçue du serveur");
+    return res.json();
+    })
+        
       .then((data) => {
+        console.log("Données reçues :", data);
+        
         if (data.error) {
+          console.log("Erreur côté serveur :", data.error);
+
           setErreur(data.error);
         } else {
+          console.log("Affichage du score et du niveau de risque");
+
           setResultat(data);
         }
       })
