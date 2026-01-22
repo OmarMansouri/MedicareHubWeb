@@ -107,7 +107,8 @@ public class MedicalService {
             }
         }
 
-        log.info("Maladies possibles restantes : " + possibles.size() + " " + possibles);
+        log.info("Maladies possibles restantes : {} {}", possibles.size(),possibles.stream().map(Disease::getNom).toList());
+
 
         //S'arreter si les symptomes présents correspondent entièrement aux symptomes d'une maladie possible
         for (Disease d : possibles) {
