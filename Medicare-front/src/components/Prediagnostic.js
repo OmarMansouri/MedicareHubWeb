@@ -39,7 +39,7 @@ export default function Prediagnostic() {
     setSymptomesPresents(nouveauxPresents);
     setSymptomesAbsents(nouveauxAbsents);
 
-    const res = await axios.post("http://172.31.250.86/api/prochaineQuestion", { 
+    const res = await axios.post("http://172.31.250.86:8081/api/prochaineQuestion", { 
       symptomesPresents: nouveauxPresents,
       symptomesAbsents: nouveauxAbsents
     });
