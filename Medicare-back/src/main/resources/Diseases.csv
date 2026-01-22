@@ -2,7 +2,7 @@ disease,common_symptoms,discriminant_symptoms
 Grippe,"fievre;toux;fatigue","courbatures;frissons;maux de tete"
 COVID-19,"fievre;toux;fatigue","perte de gout;perte d'odorat;maux de tete"
 Rhume,"toux;mal de gorge","nez qui coule;eternuements;nez bouche"
-Allergie saisonniere,"toux;eternuements","nez qui coule;yeux qui piquent"
+Allergie saisonniere,"toux;eternuements","yeux qui piquent"
 Gastro enterite,"diarrhee;nausees","vomissements;douleurs abdominales;fievre"
 Migraine,"maux de tete","nausees;sensibilite a la lumiere;sensibilite au bruit"
 Angine,"mal de gorge;fievre","douleur en avalant;fatigue"
