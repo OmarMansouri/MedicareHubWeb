@@ -23,7 +23,7 @@ export default function Risque() {
     }
 
         // appel l'API backend pour calculer le risque
-      fetch(`http://localhost:8081/risque/patient/${idPatient}`)
+      fetch(`http://172.31.250.86:8081/risque/patient/${idPatient}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
