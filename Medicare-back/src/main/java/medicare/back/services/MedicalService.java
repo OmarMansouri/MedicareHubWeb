@@ -23,10 +23,13 @@ public class MedicalService {
 
     private DiseaseRepository diseaseRepo;
     private SymptomRepository symptomRepo;
+    private final BayesDiagnosisService bayesDiagnosisService;
+    private static final double seuil = 0.85;
 
-    public MedicalService(DiseaseRepository diseaseRepo, SymptomRepository symptomRepo) {
+    public MedicalService(DiseaseRepository diseaseRepo, SymptomRepository symptomRepo,BayesDiagnosisService bayesDiagnosisService) {
         this.diseaseRepo = diseaseRepo;
         this.symptomRepo = symptomRepo;
+        this.bayesDiagnosisService = bayesDiagnosisService;
     }
 
     public List<Symptom> getAllSymptoms() {
@@ -45,7 +48,8 @@ public class MedicalService {
     }
 
 
-    public Symptom getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents) {
+    
+    public Map<String, Object> getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents) {
 
         log.info("DÉBUT de la génération de questions");
         log.info("Symptômes présents : {}", getSymptomNames(symptomsPresents));
@@ -108,14 +112,34 @@ public class MedicalService {
         }
 
         log.info("Maladies possibles restantes : {} {}", possibles.size(),possibles.stream().map(Disease::getNom).toList());
+        
+        Map<Disease, Double> probabilities = new HashMap<>();
+        if (!possibles.isEmpty()) {
+            probabilities = bayesDiagnosisService.calculateProbabilities(
+            symptomsPresents, symptomsAbsents, possibles);
 
+            log.info("Probabilités actuelles :");
+            probabilities.forEach((d, p) ->log.info("{} -> {}%", d.getNom(), String.format("%.2f", p * 100)));
+        }
+
+        //Vérifier si une maladie a une probabilité≥ 85% 
+        for (Map.Entry<Disease, Double> entry : probabilities.entrySet()) {
+            if (entry.getValue() >= seuil) {
+                log.info("Arrêt : '{}' atteint {}% de probabilité (seuil = {}%)", 
+                    entry.getKey().getNom(), 
+                    String.format("%.2f", entry.getValue() * 100),
+                    String.format("%.0f", seuil * 100));
+                return TriResult(probabilities);
+            }
+        }
 
         //S'arreter si les symptomes présents correspondent entièrement aux symptomes d'une maladie possible
         for (Disease d : possibles) {
             boolean tousLesSymptomesPresent = true;
 
             for (DiseaseSymptom ds : d.getSymptoms()) {
-                if (!symptomsPresents.contains(ds.getSymptom().getId())) {
+                 Long symptomeId = ds.getSymptom().getId();
+                if (!symptomsPresents.contains(symptomeId)) {
                     tousLesSymptomesPresent = false;
                     break;
                 }
@@ -123,13 +147,15 @@ public class MedicalService {
 
             if (tousLesSymptomesPresent) {
                 log.info("Arrêt : tous les symptômes de la maladie '{}' sont présents", d.getNom());
-                return null;
+                return TriResult(probabilities);
+
             }
         }
         
         if (possibles.size() <= 1) {
             log.info("Arrêt : nombre de maladies ≤ 1");
-            return null;
+            return TriResult(probabilities);
+
         }
 
         
@@ -169,7 +195,7 @@ public class MedicalService {
 
         if (compteur.isEmpty()) {
             log.info("Arrêt : aucun symptôme disponible");
-            return null;
+            return TriResult(probabilities);
         }
 
         
@@ -181,16 +207,12 @@ public class MedicalService {
             int nombreAvec = entry.getValue();
             int nombreSans = possibles.size() - nombreAvec;
 
-            
             int score = Math.min(nombreAvec, nombreSans);
 
             log.debug("Symptôme '{}' → avec: {}, sans: {}, score: {}",
                     symptome.getNom(), nombreAvec, nombreSans, score);
 
-            
-            if (score < 1) {
-                continue;
-            }
+            if (score < 1) {continue;}
 
             // Choisir le symptôme avec le meilleur score
             if (score > meilleurScore) {
@@ -202,12 +224,38 @@ public class MedicalService {
         // Si aucun symptôme pertinent trouvé
         if (meilleurSymptome == null) {
             log.info("Aucun symptôme suffisamment pertinent trouvé");
-            return null;
+            return TriResult(probabilities);
         }
 
         log.info("Prochaine question : {}", meilleurSymptome.getNom());
         log.info("Fin de la génération de questions");
 
-        return meilleurSymptome;
+        return Map.of ("type", "QUESTION",
+                       "question" , Map.of("symptomeId" , meilleurSymptome.getId(),
+                       "texte", "Avez-vous "+ meilleurSymptome.getNom() + "?")
+        );
     }
+
+    public Map<String, Object> TriResult (Map<Disease, Double> probabilities){
+
+        List<Map.Entry<Disease, Double>> liste = new ArrayList<>(probabilities.entrySet());
+        liste.sort((a,b) -> Double.compare(b.getValue(),a.getValue()));
+
+        List<Map<String, Object>> top = new ArrayList<>();
+        for (int i = 0; i< Math.min(3, liste.size()); i++ ){
+            top.add(Map.of("nom", liste.get(i).getKey().getNom() , "probabilite" , liste.get(i).getValue()));  
+        }
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("type", "RESULTAT");
+        result.put("resultats", top);
+        return result;
+
+          
+    }
+    
+    
+
+
+            
 }

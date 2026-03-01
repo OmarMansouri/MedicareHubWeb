@@ -40,20 +40,16 @@ public class MedicalController {
         if (presents == null) presents = new ArrayList<>();
         if (absents == null) absents = new ArrayList<>();
 
-        Symptom next = service.getNextQuestion(presents, absents);
+        Map<String,Object> next = service.getNextQuestion(presents, absents);
 
-        Map<String, Object> response = new HashMap<>();
-
+        
         if (next == null) {
-            response.put("question", null);
-            return response;
-        }    
+            return Map.of("type","RESULTAT" , "resultats", new ArrayList<>());
 
-        Map<String, Object> question = new HashMap<>();
-        question.put("symptomeId", next.getId());
-        question.put("texte", "Avez-vous " + next.getNom() + " ?");
+            
+        } 
+        return next ;   
 
-        return Map.of("question", question);
     }    
 
 
