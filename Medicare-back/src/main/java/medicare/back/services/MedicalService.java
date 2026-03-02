@@ -1,5 +1,6 @@
 package medicare.back.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,11 +10,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import medicare.back.models.DiagnosticSession;
 import medicare.back.models.Disease;
 import medicare.back.models.DiseaseSymptom;
+import medicare.back.models.Patient;
+import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.Symptom;
 import medicare.back.models.SymptomType;
+import medicare.back.repositories.DiagnosticSessionRepository;
 import medicare.back.repositories.DiseaseRepository;
+import medicare.back.repositories.PatientRepository;
+import medicare.back.repositories.ProbableDiseaseResultRepository;
 import medicare.back.repositories.SymptomRepository;
 
 @Service
@@ -23,13 +30,19 @@ public class MedicalService {
 
     private DiseaseRepository diseaseRepo;
     private SymptomRepository symptomRepo;
+    private final DiagnosticSessionRepository sessionRepo;
+    private final ProbableDiseaseResultRepository resultRepo;
+    private final PatientRepository patientRepo;
     private final BayesDiagnosisService bayesDiagnosisService;
     private static final double seuil = 0.85;
 
-    public MedicalService(DiseaseRepository diseaseRepo, SymptomRepository symptomRepo,BayesDiagnosisService bayesDiagnosisService) {
+    public MedicalService(DiseaseRepository diseaseRepo, SymptomRepository symptomRepo,BayesDiagnosisService bayesDiagnosisService,PatientRepository patientRepo,DiagnosticSessionRepository sessionRepo,ProbableDiseaseResultRepository resultRepo) {
         this.diseaseRepo = diseaseRepo;
         this.symptomRepo = symptomRepo;
         this.bayesDiagnosisService = bayesDiagnosisService;
+        this.patientRepo = patientRepo;
+        this.sessionRepo = sessionRepo;
+        this.resultRepo = resultRepo;
     }
 
     public List<Symptom> getAllSymptoms() {
@@ -51,7 +64,7 @@ public class MedicalService {
     
     public Map<String, Object> getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents) {
 
-        log.info("DÉBUT de la génération de questions");
+        //log.info("DÉBUT de la génération de questions");
         log.info("Symptômes présents : {}", getSymptomNames(symptomsPresents));
         log.info("Symptômes absents  : {}", getSymptomNames(symptomsAbsents));
 
@@ -63,7 +76,7 @@ public class MedicalService {
             boolean compatible = true;
             boolean aSymptomeCommun = false;
 
-            log.debug("Analyse de la maladie : {}", d.getNom());
+            //log.debug("Analyse de la maladie : {}", d.getNom());
 
             // Vérifier qu'au moins un symptôme commun est présent
             for (DiseaseSymptom ds : d.getSymptoms()) {
@@ -75,7 +88,7 @@ public class MedicalService {
             }
 
             if (!aSymptomeCommun) {
-                log.debug("Rejetée (aucun symptôme commun présent)");
+                //log.debug("Rejetée (aucun symptôme commun présent)");
                 compatible = false;
             }
 
@@ -84,8 +97,7 @@ public class MedicalService {
                 for (DiseaseSymptom ds : d.getSymptoms()) {
                     if (ds.getType() == SymptomType.DISCRIMINANT &&
                         symptomsAbsents.contains(ds.getSymptom().getId())) {
-                        log.debug("Rejetée (symptôme discriminant absent : {})",
-                                ds.getSymptom().getNom());
+                        //log.debug("Rejetée (symptôme discriminant absent : {})",ds.getSymptom().getNom());
                         compatible = false;
                         break;
                     }
@@ -97,8 +109,7 @@ public class MedicalService {
                 for (DiseaseSymptom ds : d.getSymptoms()) {
                     if (ds.getType() == SymptomType.COMMON &&
                         symptomsAbsents.contains(ds.getSymptom().getId())) {
-                        log.debug("Rejetée (symptôme commun absent : {})",
-                                ds.getSymptom().getNom());
+                        //log.debug("Rejetée (symptôme commun absent : {})",ds.getSymptom().getNom());
                         compatible = false;
                         break;
                     }
@@ -106,7 +117,7 @@ public class MedicalService {
             }
 
             if (compatible) {
-                log.debug("Maladie possible");
+                //log.debug("Maladie possible");
                 possibles.add(d);
             }
         }
@@ -174,7 +185,7 @@ public class MedicalService {
             }
         }
 
-        log.info("Symptômes discriminants candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
+        //log.info("Symptômes discriminants candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
 
         
         if (compteur.isEmpty()) {
@@ -190,7 +201,7 @@ public class MedicalService {
                 }
             }
             
-            log.info("Symptômes communs candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
+            //log.info("Symptômes communs candidats : {} ", compteur.keySet().stream().map(Symptom::getNom).toList());
         }
 
         if (compteur.isEmpty()) {
@@ -228,7 +239,7 @@ public class MedicalService {
         }
 
         log.info("Prochaine question : {}", meilleurSymptome.getNom());
-        log.info("Fin de la génération de questions");
+        //log.info("Fin de la génération de questions");
 
         return Map.of ("type", "QUESTION",
                        "question" , Map.of("symptomeId" , meilleurSymptome.getId(),
@@ -237,12 +248,28 @@ public class MedicalService {
     }
 
     public Map<String, Object> TriResult (Map<Disease, Double> probabilities){
-
+        // créer une session et stocker le résultat 
+        Patient patient = patientRepo.findById(1).orElseThrow(()-> new RuntimeException("Patient non trouvé"));
+        DiagnosticSession session = new DiagnosticSession();
+        session.setDateDiagnostic(LocalDateTime.now());
+        session.setPatient(patient);
+        sessionRepo.save(session);
+        
         List<Map.Entry<Disease, Double>> liste = new ArrayList<>(probabilities.entrySet());
         liste.sort((a,b) -> Double.compare(b.getValue(),a.getValue()));
 
         List<Map<String, Object>> top = new ArrayList<>();
         for (int i = 0; i< Math.min(3, liste.size()); i++ ){
+            Disease disease =liste.get(i).getKey();
+            Double score = liste.get(i).getValue();
+
+            ProbableDiseaseResult pdr = new ProbableDiseaseResult();
+            pdr.setSession(session);
+            pdr.setDisease(disease);
+            pdr.setScore(score);
+            pdr.setRang(i+1);
+            resultRepo.save(pdr);
+
             top.add(Map.of("nom", liste.get(i).getKey().getNom() , "probabilite" , liste.get(i).getValue()));  
         }
         

@@ -33,7 +33,7 @@ public class CsvLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        /*// On vide les tables avant le chargement
+       /*  // On vide les tables avant le chargement
         diseaseRepo.deleteAll();
         symptomRepo.deleteAll();
         logger.info("Nombre de maladies après deleteAll : {}", diseaseRepo.count());
