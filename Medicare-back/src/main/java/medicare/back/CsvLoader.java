@@ -33,61 +33,93 @@ public class CsvLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // On vide les tables avant le chargement
+       /*  // On vide les tables avant le chargement
         diseaseRepo.deleteAll();
         symptomRepo.deleteAll();
+        logger.info("Nombre de maladies après deleteAll : {}", diseaseRepo.count());
+        logger.info("Nombre de symptômes après deleteAll : {}", symptomRepo.count());*/
+
 
         BufferedReader reader = new BufferedReader(
             new InputStreamReader(new ClassPathResource("Diseases.csv").getInputStream())
         );
 
-        reader.readLine(); // sauter l'en-tête
-
+        reader.readLine(); 
         String line;
         while ((line = reader.readLine()) != null) {
+            
             String[] parts = line.split(",");
-            if (parts.length < 3) continue; // sécurité
+            if (parts.length < 3) continue; 
 
             String diseaseName = parts[0];
-            String[] commonSymptoms = parts[1].split(" ");
-            String[] discriminantSymptoms = parts[2].split(" ");
+
+            String commonSymptomsStr = parts[1].replace("\"", "");
+            String[] commonSymptoms = commonSymptomsStr.split(";");
+            
+            String discriminantSymptomsStr = parts[2].replace("\"", "");
+            String[] discriminantSymptoms = discriminantSymptomsStr.split(";");
+
 
             // Récupérer ou créer la maladie
             Disease disease = diseaseRepo.findByNom(diseaseName).orElse(new Disease(diseaseName));
 
             // Ajouter les symptômes communs
             for (String symptomName : commonSymptoms) {
+                symptomName = symptomName.trim();
                 Symptom symptom = symptomRepo.findByNom(symptomName).orElse(null);
                 if (symptom == null) {
                     symptom = new Symptom(symptomName);
                     symptom = symptomRepo.save(symptom);
                 }
-                DiseaseSymptom ds = new DiseaseSymptom();
-                ds.setDisease(disease);
-                ds.setSymptom(symptom);
-                ds.setType(SymptomType.COMMON);
-                disease.getSymptoms().add(ds);
-            }
+                final Symptom finalSymptom = symptom;
 
+                boolean exists = disease.getSymptoms().stream().anyMatch(
+                    existing ->
+                    existing.getSymptom().getNom().equals(finalSymptom.getNom())
+                    && existing.getType() == SymptomType.COMMON
+                   );
+
+
+                if (!exists) {
+                    DiseaseSymptom ds = new DiseaseSymptom();
+                    ds.setDisease(disease);
+                    ds.setSymptom(finalSymptom);
+                    ds.setType(SymptomType.COMMON);
+                    disease.getSymptoms().add(ds);
+            }
+        }
             // Ajouter les symptômes discriminants
             for (String symptomName : discriminantSymptoms) {
+                symptomName = symptomName.trim();
                 Symptom symptom = symptomRepo.findByNom(symptomName).orElse(null);
                 if (symptom == null) {
                     symptom = new Symptom(symptomName);
                     symptom = symptomRepo.save(symptom);
                 }
-                DiseaseSymptom ds = new DiseaseSymptom();
-                ds.setDisease(disease);
-                ds.setSymptom(symptom);
-                ds.setType(SymptomType.DISCRIMINANT);
-                disease.getSymptoms().add(ds);
+
+                final Symptom finalSymptom = symptom;
+                boolean exists = disease.getSymptoms().stream().anyMatch(
+                    existing ->
+                    existing.getSymptom().getNom().equals(finalSymptom.getNom())
+                    && existing.getType() == SymptomType.DISCRIMINANT
+                    );
+                if (!exists) {
+                    DiseaseSymptom ds = new DiseaseSymptom();
+                    ds.setDisease(disease);
+                    ds.setSymptom(finalSymptom);
+                    ds.setType(SymptomType.DISCRIMINANT);
+                    disease.getSymptoms().add(ds);
             }
 
             diseaseRepo.save(disease);
             logger.info("Maladie '{}' sauvegardée avec {} symptômes", diseaseName, disease.getSymptoms().size());
         }
 
-        reader.close();
+        logger.info("Nombre final de maladies en base : {}", diseaseRepo.count());
+        logger.info("Nombre final de symptômes en base : {}", symptomRepo.count());
+
+
         logger.info("Chargement CSV terminé ");
     }
+}
 }

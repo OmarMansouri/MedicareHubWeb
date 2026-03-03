@@ -6,14 +6,16 @@ export default function Prediagnostic() {
   const [symptomesPresents, setSymptomesPresents] = useState([]);
   const [symptomesAbsents, setSymptomesAbsents] = useState([]);
   const [questionCourante, setQuestionCourante] = useState(null);
+  const[resultat, setResultat] = useState(null);
   const [etape, setEtape] = useState("selection");
 
   useEffect(() => {
-    axios.get("http://172.31.250.86:8081/api/symptomes")
+    axios.get("http://localhost:8081/api/symptomes")
       .then(res => setSymptomes(res.data))
       .catch(err => console.error(err));
   }, []);
-
+  
+  //ajouter ou retirer 
   const handleCheckboxChange = (id) => {
     setSymptomesPresents(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -21,14 +23,15 @@ export default function Prediagnostic() {
   };
 
   const demarrerArbre = async () => {
-    const res = await axios.post("http://172.31.250.86:8081/api/prochaineQuestion", { 
+    const res = await axios.post("http://localhost:8081/api/prochaineQuestion", { 
       symptomesPresents,
       symptomesAbsents: []
     });
-    if (res.data.question) {
+    if (res.data.type === "QUESTION") {
       setQuestionCourante(res.data.question);
       setEtape("questions");
-    } else {
+    } else if(res.data.type ==="RESULTAT") {
+      setResultat(res.data.resultats)
       setEtape("fin");
     }
   };
@@ -39,13 +42,14 @@ export default function Prediagnostic() {
     setSymptomesPresents(nouveauxPresents);
     setSymptomesAbsents(nouveauxAbsents);
 
-    const res = await axios.post("http://172.31.250.86:8081/api/prochaineQuestion", { 
+    const res = await axios.post("http://localhost:8081/api/prochaineQuestion", { 
       symptomesPresents: nouveauxPresents,
       symptomesAbsents: nouveauxAbsents
     });
-    if (res.data.question) {
+    if (res.data.type === "QUESTION") {
       setQuestionCourante(res.data.question);
-    } else {
+    } else if (res.data.type === "RESULTAT") {
+      setResultat(res.data.resultats);
       setEtape("fin");
     }
   };
@@ -54,6 +58,7 @@ export default function Prediagnostic() {
     setSymptomesPresents([]);
     setSymptomesAbsents([]);
     setQuestionCourante(null);
+    setResultat(null);
     setEtape("selection");
   };
 
@@ -81,11 +86,12 @@ export default function Prediagnostic() {
 
   return (
     <div style={{ maxWidth: 500, margin: "40px auto", fontFamily: "Arial, sans-serif" }}>
-      <h2 style={{ textAlign: "center", marginBottom: 30 }}>Assistant médical</h2>
-
+      <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 10 }}>Assistant médical</h2>
       {etape === "selection" && (
         <div>
-          <p>Sélectionnez vos symptômes :</p>
+          <p style={{ color: "#555", fontSize: 16, textAlign: "center" }}>
+            Sélectionnez vos symptômes pour commencer
+          </p>
           <div style={{ border: "1px solid #ccc", borderRadius: 8, padding: 15, maxHeight: 300, overflowY: "auto" }}>
             {symptomes.map(s => (
               <label key={s.id} style={{ display: "block", padding: "8px 0", cursor: "pointer", borderBottom: "1px solid #f0f0f0" }}>
@@ -112,7 +118,8 @@ export default function Prediagnostic() {
             Commencer ({symptomesPresents.length} symptôme(s))
           </button>
         </div>
-      )}
+)}
+
 
       {etape === "questions" && questionCourante && (
         <div style={{ marginTop: 30, textAlign: "center" }}>
@@ -145,6 +152,23 @@ export default function Prediagnostic() {
               {symptomesPresents.map(id => symptomes.find(s => s.id === id)?.nom).join(", ") || "Aucun"}
             </div>
           </div>
+          {resultat && resultat.length > 0 &&(
+            <div style={{
+              marginTop: 15,
+              padding: 15,
+              background: "#e8f4fd",
+              borderRadius: 8
+            }}>
+              <strong>Résultat :</strong>
+              <div>
+                {resultat.map((r, idx) => (
+                  <div key={idx}>
+                    {r.nom} - {Math.round(r.probabilite * 100)}%
+                  </div>
+                ))}
+              </div>
+            </div>  
+          )}
           <button
             onClick={recommencer}
             style={boutonStyle("#2c3e50")}
