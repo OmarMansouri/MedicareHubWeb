@@ -8,6 +8,7 @@ import Maps from "./Maps";
 import Dashboard from "../pages/Dashboard";
 import Risque from "./Risque";
 import PrediagnosticView from "../modules/Prediagnostic/views/PrediagnosticView";
+import ConnexionView from "../modules/Connexion/views/ConnexionView";
 
 
 
@@ -23,7 +24,7 @@ export default function Router() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/prediagnostic" element={<PrediagnosticView />} />
-
+        <Route path="/connexion" element={<ConnexionView />} />
 
 
       </Routes>

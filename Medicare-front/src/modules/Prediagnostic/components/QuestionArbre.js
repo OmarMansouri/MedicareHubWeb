@@ -4,7 +4,7 @@ import { boutonStyle, boutonHover, boutonOut } from "../styles/styles.js";
 export default function QuestionArbre({ questionCourante, repondre }) {
   return (
     <div style={{ marginTop: 30, textAlign: "center" }}>
-      <h3 style={{ marginBottom: 20 }}>{questionCourante.texte}</h3>
+      <h3 style={{ marginBottom: 20,fontFamily: "Georgia, serif", fontSize: 25, color: "#2c3e50" }}>{questionCourante.texte}</h3>
       <button
         onClick={() => repondre(true)}
         style={boutonStyle("#3498db")}
@@ -15,7 +15,7 @@ export default function QuestionArbre({ questionCourante, repondre }) {
       </button>
       <button
         onClick={() => repondre(false)}
-        style={boutonStyle("#7f8c8d")}
+        style={boutonStyle("#6c757d")}
         onMouseOver={boutonHover}
         onMouseOut={boutonOut}
       >

@@ -6,9 +6,11 @@ export async function getSymptomes() {
 }
 
 export async function prochaineQuestion(symptomesPresents, symptomesAbsents) {
+  const patient = JSON.parse(localStorage.getItem("patient"));
   const res = await axios.post('/api/prochaineQuestion', {
     symptomesPresents,
-    symptomesAbsents
+    symptomesAbsents,
+    patientId: patient ? patient.idPatient : null
   });
   return res.data;
 }

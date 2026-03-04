@@ -8,6 +8,7 @@ export const boutonStyle = (bg) => ({
   cursor: "pointer",
   fontWeight: "bold",
   transition: "0.2s",
+  fontFamily: "Century Gothic, sans-serif"
 });
 
 export const boutonHover = (e) => { 
