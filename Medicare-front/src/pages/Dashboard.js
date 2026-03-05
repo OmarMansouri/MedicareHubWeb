@@ -5,7 +5,7 @@ import AirCard from "../components/AirCard";
 import LegendCard from "../components/LegendCard";
 import WeatherCard from "../components/WeatherCard";
 import "../styles/Dashboard.css";
-
+import RiskCard from "../components/RiskCard";
 export default function Dashboard() {
   const [center, setCenter] = useState(null);
 
@@ -20,7 +20,9 @@ export default function Dashboard() {
       <div className="info-column">
         <AirCard center={center} />
         <WeatherCard center={center} />
-        <LegendCard />{" "}
+        <RiskCard center={center} /> {}
+        <LegendCard />
+       
       </div>
     </div>
   );
