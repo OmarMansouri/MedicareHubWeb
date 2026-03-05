@@ -32,15 +32,19 @@ public class MedicalController {
 
     @PostMapping("/prochaineQuestion")
     public Map<String, Object> prochaineQuestion(
-            @RequestBody Map<String, List<Long>> body) {
+            @RequestBody Map<String, Object> body) {
 
-        List<Long> presents = body.get("symptomesPresents");
-        List<Long> absents = body.get("symptomesAbsents");
-        
+        List<Long> presents = ((List<?>) body.getOrDefault("symptomesPresents", new ArrayList<>()))
+        .stream().map(id -> ((Number) id).longValue()).collect(java.util.stream.Collectors.toList());
+        List<Long> absents = ((List<?>) body.getOrDefault("symptomesAbsents", new ArrayList<>()))
+        .stream().map(id -> ((Number) id).longValue()).collect(java.util.stream.Collectors.toList());
+        int patientId =((Number) body.get("patientId")).intValue();
+
         if (presents == null) presents = new ArrayList<>();
         if (absents == null) absents = new ArrayList<>();
+        
 
-        Map<String,Object> next = service.getNextQuestion(presents, absents);
+        Map<String,Object> next = service.getNextQuestion(presents, absents, patientId);
 
         
         if (next == null) {
