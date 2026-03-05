@@ -22,6 +22,12 @@ public class Patient {
     private String nom;
     @Column(name = "prenom")
     private String prenom;
+
+    @Column(name = "email", unique =true)
+    private String email;
+    @Column(name = "motdepasse")
+    private String motDePasse;
+
     
     public Patient() {
     }
@@ -29,6 +35,8 @@ public class Patient {
     public Patient(String nom, String prenom) {
         this.nom = nom;
         this.prenom = prenom;
+        this.email = email;
+        this.motDePasse = motDePasse;
     }
 
     public int getIdPatient() {
@@ -54,4 +62,23 @@ public class Patient {
     public void setPrenom(String prenom) {
         this.prenom = prenom;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email){
+        this.email = email;
+    }
+
+    public String getMotDePasse(){
+        return motDePasse;
+    }
+
+    public void setMotDePasse (String motDePasse){
+        this.motDePasse = motDePasse;
+    }
+
+
+
 }

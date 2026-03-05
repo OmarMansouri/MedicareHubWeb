@@ -51,7 +51,8 @@ public class MedicalService {
 
     private String getSymptomNames(List<Long> ids) {
         List<String> noms = new ArrayList<>();
-        for (Long id : ids) {
+        for (Object obj : ids) {
+            Long id = ((Number) obj).longValue();
             Symptom s = symptomRepo.findById(id).orElse(null);
             if (s != null) {
                 noms.add(s.getNom());
@@ -62,7 +63,7 @@ public class MedicalService {
 
 
     
-    public Map<String, Object> getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents) {
+    public Map<String, Object> getNextQuestion(List<Long> symptomsPresents, List<Long> symptomsAbsents, int patientId) {
 
         //log.info("DÉBUT de la génération de questions");
         log.info("Symptômes présents : {}", getSymptomNames(symptomsPresents));
@@ -130,7 +131,25 @@ public class MedicalService {
             symptomsPresents, symptomsAbsents, possibles);
 
             log.info("Probabilités actuelles :");
-            probabilities.forEach((d, p) ->log.info("{} -> {}%", d.getNom(), String.format("%.2f", p * 100)));
+            // probabilities.forEach((d, p) ->log.info("{} -> {}%", d.getNom(), String.format("%.2f", p * 100)));
+            probabilities.entrySet().stream()
+            .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+            .forEach(e -> {
+                double pct = e.getValue() * 100;
+                log.info("   {} : {}%", e.getKey().getNom(), String.format("%.2f", pct));
+
+                for (DiseaseSymptom ds : e.getKey().getSymptoms()) {
+                    String statut;
+                    if (symptomsPresents.contains(ds.getSymptom().getId())) {
+                        statut = "PRESENT ";
+                    } else if (symptomsAbsents.contains(ds.getSymptom().getId())) {
+                        statut = "ABSENT  ";
+                    } else {
+                        statut = "INCONNU ";
+                    }
+                    log.info("      [{}][{}] {}", statut, ds.getType(), ds.getSymptom().getNom());
+                }
+            });
         }
 
         //Vérifier si une maladie a une probabilité≥ 85% 
@@ -140,7 +159,7 @@ public class MedicalService {
                     entry.getKey().getNom(), 
                     String.format("%.2f", entry.getValue() * 100),
                     String.format("%.0f", seuil * 100));
-                return TriResult(probabilities);
+                return TriResult(probabilities, patientId);
             }
         }
 
@@ -158,14 +177,14 @@ public class MedicalService {
 
             if (tousLesSymptomesPresent) {
                 log.info("Arrêt : tous les symptômes de la maladie '{}' sont présents", d.getNom());
-                return TriResult(probabilities);
+                return TriResult(probabilities, patientId);
 
             }
         }
         
         if (possibles.size() <= 1) {
             log.info("Arrêt : nombre de maladies ≤ 1");
-            return TriResult(probabilities);
+            return TriResult(probabilities, patientId);
 
         }
 
@@ -206,7 +225,7 @@ public class MedicalService {
 
         if (compteur.isEmpty()) {
             log.info("Arrêt : aucun symptôme disponible");
-            return TriResult(probabilities);
+            return TriResult(probabilities, patientId);
         }
 
         
@@ -235,7 +254,7 @@ public class MedicalService {
         // Si aucun symptôme pertinent trouvé
         if (meilleurSymptome == null) {
             log.info("Aucun symptôme suffisamment pertinent trouvé");
-            return TriResult(probabilities);
+            return TriResult(probabilities, patientId);
         }
 
         log.info("Prochaine question : {}", meilleurSymptome.getNom());
@@ -247,9 +266,9 @@ public class MedicalService {
         );
     }
 
-    public Map<String, Object> TriResult (Map<Disease, Double> probabilities){
+    public Map<String, Object> TriResult (Map<Disease, Double> probabilities,  int patientId){
         // créer une session et stocker le résultat 
-        Patient patient = patientRepo.findById(1).orElseThrow(()-> new RuntimeException("Patient non trouvé"));
+        Patient patient = patientRepo.findById( patientId).orElseThrow(()-> new RuntimeException("Patient non trouvé"));
         DiagnosticSession session = new DiagnosticSession();
         session.setDateDiagnostic(LocalDateTime.now());
         session.setPatient(patient);
