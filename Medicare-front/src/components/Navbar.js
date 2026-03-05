@@ -33,6 +33,11 @@ export default function Navbar() {
     Risque
   </Link>
 </li>
+          <li className="nav-item">
+            <Link className={linkClass("/Antecedents")} to="/Antecedents">
+              Antécédents
+            </Link>
+          </li>
 
         </ul>
       </div>

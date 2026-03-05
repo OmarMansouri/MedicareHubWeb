@@ -7,6 +7,7 @@ import Maps from "./Maps";
 import Prediagnostic from "./Prediagnostic";
 import Dashboard from "../pages/Dashboard";
 import Risque from "./Risque";
+import AntecedentsView from "../modules/Antecedents/views/AntecedentView";
 
 
 export default function Router() {
@@ -20,6 +21,7 @@ export default function Router() {
         <Route path="/risque" element={<Risque />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/Antecedents" element={<AntecedentsView />} />
         
 
       </Routes>
