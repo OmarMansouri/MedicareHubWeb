@@ -24,7 +24,7 @@ export default function Risque() {
 
   // appel API pour calculer le risque
    console.log("Envoi de la requête au backend pour le patient", idPatient);
-  fetch(`http://localhost:8081/risque/patient/${idPatient}`)
+  fetch(`http://172.31.250.86:8081/risque/patient/${idPatient}`)
   .then((res) => {
   console.log("Réponse reçue du serveur");
   return res.json();
