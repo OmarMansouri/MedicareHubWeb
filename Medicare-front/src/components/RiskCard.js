@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-
+const API_BASE =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8081"
+    : "http://172.31.250.86:8081";
 function RiskCard(props) {
 
   const [risk, setRisk] = useState(null);
@@ -11,7 +14,7 @@ function RiskCard(props) {
     }
     var lat = props.center[0];
     var lon = props.center[1];
-    var url = "http://localhost:8081/api/risk/coords?lat=" + lat + "&lon=" + lon + "&radiusKm=5";
+    var url = API_BASE + "/api/risk/coords?lat=" + lat + "&lon=" + lon + "&radiusKm=5";
     fetch(url)
       .then(function (response) {
         return response.json();
