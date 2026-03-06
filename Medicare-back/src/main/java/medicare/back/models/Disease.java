@@ -13,6 +13,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 public class Disease {
@@ -23,7 +25,8 @@ public class Disease {
 
     @Column(unique = true, nullable = false)
     private String nom;
-
+    
+    @JsonIgnore
     @OneToMany(mappedBy = "disease", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<DiseaseSymptom> symptoms = new ArrayList<>();
 
@@ -40,6 +43,11 @@ public class Disease {
     public List<DiseaseSymptom> getSymptoms() {
         return symptoms;
     }
+
+    public Long getId() {
+         return id; 
+        }
+
     /*private String nom;
     private List<Integer> symptomesCommuns;
     private List<Integer> symptomesDiscriminants;

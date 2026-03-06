@@ -43,7 +43,8 @@ public class DiagnosticSession {
     public void setResults(List<ProbableDiseaseResult> results) { 
         this.results = results; 
     }
-
+    
+     public Long getId() { return id; }
     
 
 }
