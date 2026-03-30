@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import medicare.back.models.Antecedent;
@@ -29,16 +30,18 @@ private PatientAntecedentRepository patientAntecedentRepository;
 private AntecedentRepository antecedentRepository;
 private DiagnosticSessionRepository diagnosticSessionRepository;
 private ProbableDiseaseResultRepository probableDiseaseResultRepository;
+private JdbcTemplate jdbcTemplate;
 
  public RisqueService(ProfilPatientRepository profilPatientRepository, 
  PatientAntecedentRepository patientAntecedentRepository, 
   AntecedentRepository antecedentRepository,DiagnosticSessionRepository diagnosticSessionRepository,
-  ProbableDiseaseResultRepository probableDiseaseResultRepository) {
+  ProbableDiseaseResultRepository probableDiseaseResultRepository,JdbcTemplate jdbcTemplate) {
  this.profilPatientRepository = profilPatientRepository;
   this.patientAntecedentRepository = patientAntecedentRepository;
   this.antecedentRepository = antecedentRepository; 
  this.diagnosticSessionRepository = diagnosticSessionRepository;
-  this.probableDiseaseResultRepository = probableDiseaseResultRepository;}
+  this.probableDiseaseResultRepository = probableDiseaseResultRepository;
+this.jdbcTemplate = jdbcTemplate;}
 
 
     public Map<String, Object> calculerRisque(int idPatient) {
@@ -310,21 +313,70 @@ private ProbableDiseaseResultRepository probableDiseaseResultRepository;
         podium.add(entree);
         }
 
-        // on trie par score décroissant et on garde les 3 premiers
 
-            for (int i = 0; i < podium.size() - 1; i++) {
-            for (int j = i + 1; j < podium.size(); j++) {
-            double scoreI = (Double) podium.get(i).get("score");
-            double scoreJ = (Double) podium.get(j).get("score");
-             if (scoreJ > scoreI) {
-            Map<String, Object> temp = podium.get(i);
-            podium.set(i, podium.get(j));
-            podium.set(j, temp);
+    // on récupère les risques environnementaux depuis la base 
+    //(zone 1 = Paris pour tester le temps que omar finisse sa partie)
+    String sql = "SELECT d.nom, r.score_risque FROM risque_maladie_zone r JOIN disease d ON d.id = r.disease_id WHERE r.zone_id = 1";
+    List<Map<String, Object>> resultatsEnv = jdbcTemplate.queryForList(sql);
+
+     for (Map<String, Object> ligne : resultatsEnv) {
+        String nomMaladie = (String) ligne.get("nom");
+         double scoreEnv = Double.parseDouble(ligne.get("score_risque").toString());
+
+    // on cherche si la maladie est déjà dans le podium
+    boolean trouvee = false;
+
+    for (Map<String, Object> entree : podium) {
+    if (entree.get("maladie").equals(nomMaladie)) {
+
+    //  ajustement du score avec la contribution environnementale
+    double ancienScore = (Double) entree.get("score");
+     double nouveauScore = Math.round(Math.min(100.0, (ancienScore * 0.90) + (scoreEnv * 0.10)) * 10.0) / 10.0;
+     entree.put("score", nouveauScore);
+     details.add("Facteur environnemental " + nomMaladie + " (zone Paris) : score : " + scoreEnv + "/100");
+     trouvee = true;
+      break;
+      }
         }
-    }
-}        List<Map<String, Object>> top3 = podium.subList(0, Math.min(3, podium.size()));
 
-        log.info("Score profil={} | Podium : {} maladies", scoreProfil, top3.size());
+    // si la maladie nest pas encore dans le podium on lajoute
+    if (!trouvee) {
+    double scoreRisque = Math.round(Math.min(100.0, (scoreProfil * 0.30) + (scoreEnv * 0.10)) * 10.0) / 10.0;
+    String niveauMaladie;
+
+    if (scoreRisque <= 30) {
+    niveauMaladie = "faible";
+    } else if (scoreRisque <= 60) {
+    niveauMaladie = "moyen";
+    } else {
+    niveauMaladie = "élevé";
+    }
+
+    Map<String, Object> entree = new HashMap<>();
+    entree.put("maladie", nomMaladie);
+    entree.put("score", scoreRisque);
+    entree.put("niveau", niveauMaladie);
+    podium.add(entree);
+    }
+     }
+
+
+ //  trie par score décroissant : on garde les 3 premiers
+
+    for (int i = 0; i < podium.size() - 1; i++) {
+     for (int j = i + 1; j < podium.size(); j++) {
+        double scoreI = (Double) podium.get(i).get("score");
+         double scoreJ = (Double) podium.get(j).get("score");
+    if (scoreJ > scoreI) {
+     Map<String, Object> temp = podium.get(i);
+        podium.set(i, podium.get(j));
+        podium.set(j, temp);
+        }
+       }
+    }   
+    List<Map<String, Object>> top3 = podium.subList(0, Math.min(3, podium.size()));
+         log.info("Score profil={} | Podium : {} maladies", scoreProfil, top3.size());
+
 
         return Map.of(
                 "idPatient", idPatient,
@@ -333,6 +385,37 @@ private ProbableDiseaseResultRepository probableDiseaseResultRepository;
                 "podium", top3
         );
     }
-}
+
+
+    public Map<String, Object> enregistrerEvaluation(int idPatient, List<Map<String, Object>> top3) {
+     String sqlInsertEval = "INSERT INTO evaluation_risque (patient_id, date_calcul) VALUES (?, NOW())";
+      jdbcTemplate.update(sqlInsertEval, idPatient);
+
+    String sqlGetId = "SELECT id FROM evaluation_risque WHERE patient_id = ? ORDER BY date_calcul DESC LIMIT 1";
+     List<Map<String, Object>> evalResult = jdbcTemplate.queryForList(sqlGetId, idPatient);
+       int idEvaluation = Integer.parseInt(evalResult.get(0).get("id").toString());
+
+    int rang = 1;
+     for (Map<String, Object> maladie : top3) {
+      String nomMaladie = (String) maladie.get("maladie");
+       double score = Double.parseDouble(maladie.get("score").toString());
+     String niveau = (String) maladie.get("niveau");
+
+        String sqlDisease = "SELECT id FROM disease WHERE nom = ?";
+         List<Map<String, Object>> resultatDisease = jdbcTemplate.queryForList(sqlDisease, nomMaladie);
+
+        if (!resultatDisease.isEmpty()) {
+          int diseaseId = Integer.parseInt(resultatDisease.get(0).get("id").toString());
+        String sqlDetail = "INSERT INTO evaluation_risque_detail (evaluation_id, disease_id, score, niveau, rang) VALUES (?, ?, ?, ?, ?)";
+            jdbcTemplate.update(sqlDetail, idEvaluation, diseaseId, score, niveau, rang);
+            }
+          rang++;
+         }
+
+    log.info("Évaluation enregistrée avec id=" + idEvaluation);
+    return Map.of("ok", true, "idEvaluation", idEvaluation);
+  }
+
+  }
         
             
