@@ -416,6 +416,15 @@ this.jdbcTemplate = jdbcTemplate;}
     return Map.of("ok", true, "idEvaluation", idEvaluation);
   }
 
+    public Map<String, Object> getDerniereEvaluation(int idPatient) {
+     String sql = "SELECT date_calcul FROM evaluation_risque WHERE patient_id = ? ORDER BY date_calcul DESC LIMIT 1";
+      List<Map<String, Object>> resultats = jdbcTemplate.queryForList(sql, idPatient);
+    if (resultats.isEmpty()) {
+     return Map.of("message", "Aucune évaluation enregistrée");
+     }
+     return Map.of("dateCalcul", resultats.get(0).get("date_calcul").toString());
+    }
+
   }
         
             

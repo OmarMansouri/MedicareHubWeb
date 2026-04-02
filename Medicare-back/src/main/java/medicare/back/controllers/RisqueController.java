@@ -42,4 +42,9 @@ public Map<String, Object> enregistrer(@PathVariable int idPatient, @RequestBody
         List<Map<String, Object>> podium = (List<Map<String, Object>>) body.get("podium");
         return risqueService.enregistrerEvaluation(idPatient, podium);
         } 
-    }
+
+@GetMapping("/patient/{idPatient}/derniere-evaluation")
+   public Map<String, Object> getDerniereEvaluation(@PathVariable int idPatient) {
+    return risqueService.getDerniereEvaluation(idPatient);
+   }
+     }

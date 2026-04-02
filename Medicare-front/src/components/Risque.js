@@ -9,6 +9,7 @@ export default function Risque() {
   const [resultat, setResultat] = useState(null);
   const [erreur, setErreur] = useState("");
   const [messageEnregistrement, setMessageEnregistrement] = useState("");
+  const [derniereEvaluation, setDerniereEvaluation] = useState("");
 
   // fonction appelee quand on clique sur le bouton calculer
   const calculer = () => {
@@ -44,6 +45,8 @@ export default function Risque() {
     else {
     console.log("Affichage du score et du niveau de risque");
     setResultat(data);
+     chargerDerniereEvaluation();
+
     }
     })
 
@@ -53,18 +56,42 @@ export default function Risque() {
 
     function enregistrer() {
     console.log("Enregistrement du résultat pour le patient", idPatient);
-    setMessageEnregistrement("");
+     setMessageEnregistrement("");
 
     fetch("http://172.31.250.86:8081/risque/patient/" + idPatient + "/enregistrer", {
       method: "POST",
-       headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ podium: resultat.podium }),
-        })
-    .then(function(res) { return res.json(); })
-      .then(function() { setMessageEnregistrement("Résultat enregistré avec succès !"); })
-        .catch(function() { setMessageEnregistrement("Erreur lors de l'enregistrement."); });
-          }
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ podium: resultat.podium }),
+      })
+    .then(function(res)
+     { return res.json(); }
+    )
+     .then(function() { 
+      setMessageEnregistrement("Résultat enregistré avec succès !"); })
+    .catch(function() {
+       setMessageEnregistrement("Erreur lors de l'enregistrement."); 
+      });
+        }
 
+
+   function chargerDerniereEvaluation() {
+     fetch("http://localhost:8081/risque/patient/" + idPatient + "/derniere-evaluation")
+    .then(function(res) 
+    { 
+      return res.json();
+     })
+    .then(function(data) 
+    {
+    if (data.dateCalcul) {
+    setDerniereEvaluation("Dernière évaluation : " + data.dateCalcul.substring(0, 10));
+     } 
+     else { 
+       setDerniereEvaluation("Aucune évaluation enregistrée"); } 
+     })
+    .catch(function() 
+    { 
+      setDerniereEvaluation("Erreur lors du chargement."); });
+    }
    return (
 
   <div className="risque-container">
@@ -80,6 +107,7 @@ export default function Risque() {
   />
 
   <button onClick={calculer}>Calculer</button>
+  {derniereEvaluation && <p>{derniereEvaluation}</p>}
   {erreur && <p className="erreur">{erreur}</p>}
   {resultat && (
 
