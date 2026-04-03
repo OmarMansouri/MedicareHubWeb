@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+/*import React, { useState } from "react";
 import "../styles/Risque.css";
 
 // calculer le risque d'un patient
@@ -58,7 +58,7 @@ export default function Risque() {
     console.log("Enregistrement du résultat pour le patient", idPatient);
      setMessageEnregistrement("");
 
-    fetch("http://172.31.250.86:8081/risque/patient/" + idPatient + "/enregistrer", {
+    fetch("http://localhost:8081/risque/patient/" + idPatient + "/enregistrer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ podium: resultat.podium }),
@@ -153,4 +153,4 @@ export default function Risque() {
 
 </div>
 );
-}
+}*/
