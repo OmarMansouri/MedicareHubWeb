@@ -10,6 +10,7 @@ import Risque from "./Risque";
 import AntecedentsView from "../modules/Antecedents/views/AntecedentView";
 import PrediagnosticView from "../modules/Prediagnostic/views/PrediagnosticView";
 import ConnexionView from "../modules/Connexion/views/ConnexionView";
+import RecommandationsView from"../modules/Recommendations/views/RecommandationView";
 
 
 
@@ -28,6 +29,7 @@ export default function Router() {
         
         <Route path="/prediagnostic" element={<PrediagnosticView />} />
         <Route path="/connexion" element={<ConnexionView />} />
+        <Route path="/recommendations" element={<RecommandationsView />} />
 
 
       </Routes>
