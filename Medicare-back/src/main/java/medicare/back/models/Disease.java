@@ -45,7 +45,11 @@ public class Disease {
     }
 
     public Long getId() {
-         return id; 
+        return id; 
+    }
+
+    public void setId(Long id) { 
+        this.id = id; 
         }
 
     /*private String nom;
