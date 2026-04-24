@@ -11,11 +11,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import medicare.back.models.Antecedent;
+import medicare.back.models.ClickedPointRisk;
 import medicare.back.models.DiagnosticSession;
 import medicare.back.models.PatientAntecedent;
 import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.ProfilPatient;
 import medicare.back.repositories.AntecedentRepository;
+import medicare.back.repositories.ClickedPointRiskRepository;
 import medicare.back.repositories.DiagnosticSessionRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
@@ -31,16 +33,18 @@ private AntecedentRepository antecedentRepository;
 private DiagnosticSessionRepository diagnosticSessionRepository;
 private ProbableDiseaseResultRepository probableDiseaseResultRepository;
 private JdbcTemplate jdbcTemplate;
+private ClickedPointRiskRepository clickedPointRiskRepository;
 
  public RisqueService(ProfilPatientRepository profilPatientRepository, 
  PatientAntecedentRepository patientAntecedentRepository, 
   AntecedentRepository antecedentRepository,DiagnosticSessionRepository diagnosticSessionRepository,
-  ProbableDiseaseResultRepository probableDiseaseResultRepository,JdbcTemplate jdbcTemplate) {
+  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate) {
  this.profilPatientRepository = profilPatientRepository;
   this.patientAntecedentRepository = patientAntecedentRepository;
   this.antecedentRepository = antecedentRepository; 
  this.diagnosticSessionRepository = diagnosticSessionRepository;
   this.probableDiseaseResultRepository = probableDiseaseResultRepository;
+  this.clickedPointRiskRepository = clickedPointRiskRepository;
 this.jdbcTemplate = jdbcTemplate;}
 
 
@@ -314,52 +318,39 @@ this.jdbcTemplate = jdbcTemplate;}
         }
 
 
-    // on récupère les risques environnementaux depuis la base 
-    //(zone 1 = Paris pour tester le temps que omar finisse sa partie)
-    String sql = "SELECT d.nom, r.score_risque FROM risque_maladie_zone r JOIN disease d ON d.id = r.disease_id WHERE r.zone_id = 1";
-    List<Map<String, Object>> resultatsEnv = jdbcTemplate.queryForList(sql);
+    
 
-     for (Map<String, Object> ligne : resultatsEnv) {
-        String nomMaladie = (String) ligne.get("nom");
-         double scoreEnv = Double.parseDouble(ligne.get("score_risque").toString());
 
-    // on cherche si la maladie est déjà dans le podium
-    boolean trouvee = false;
+
+
+// on récupère le dernier score environnemental calculé
+List<ClickedPointRisk> pointsEnv = clickedPointRiskRepository.findAllByOrderByIdDesc();
+
+if (!pointsEnv.isEmpty()) {
+    double scoreEnv = 0;
+if (pointsEnv.get(0).totalScore != null) {
+    scoreEnv = pointsEnv.get(0).totalScore;
+}
+    double scoreEnvNormalise = scoreEnv * 10;
 
     for (Map<String, Object> entree : podium) {
-    if (entree.get("maladie").equals(nomMaladie)) {
-
-    //  ajustement du score avec la contribution environnementale
-    double ancienScore = (Double) entree.get("score");
-     double nouveauScore = Math.round(Math.min(100.0, (ancienScore * 0.90) + (scoreEnv * 0.10)) * 10.0) / 10.0;
-     entree.put("score", nouveauScore);
-     details.add("Facteur environnemental " + nomMaladie + " (zone Paris) : score : " + scoreEnv + "/100");
-     trouvee = true;
-      break;
-      }
-        }
-
-    // si la maladie nest pas encore dans le podium on lajoute
-    if (!trouvee) {
-    double scoreRisque = Math.round(Math.min(100.0, (scoreProfil * 0.30) + (scoreEnv * 0.10)) * 10.0) / 10.0;
-    String niveauMaladie;
-
-    if (scoreRisque <= 30) {
-    niveauMaladie = "faible";
-    } else if (scoreRisque <= 60) {
-    niveauMaladie = "moyen";
-    } else {
-    niveauMaladie = "élevé";
+        double ancienScore = (Double) entree.get("score");
+        double nouveauScore = Math.round(Math.min(100.0, (ancienScore * 0.90) + (scoreEnvNormalise * 0.10)) * 10.0) / 10.0;
+        entree.put("score", nouveauScore);
     }
+    details.add("Facteur environnemental (zone sélectionnée) : score : " + scoreEnvNormalise + "/100");
+}
 
-    Map<String, Object> entree = new HashMap<>();
-    entree.put("maladie", nomMaladie);
-    entree.put("score", scoreRisque);
-    entree.put("niveau", niveauMaladie);
-    podium.add(entree);
-    }
-     }
 
+
+
+
+
+
+
+
+   
+     
 
  //  trie par score décroissant : on garde les 3 premiers
 
@@ -374,7 +365,12 @@ this.jdbcTemplate = jdbcTemplate;}
         }
        }
     }   
-    List<Map<String, Object>> top3 = podium.subList(0, Math.min(3, podium.size()));
+    int taille = podium.size();
+    int limite = 3;
+    if (taille < limite) {
+     limite = taille;
+    }
+    List<Map<String, Object>> top3 = podium.subList(0, limite);
          log.info("Score profil={} | Podium : {} maladies", scoreProfil, top3.size());
 
 
