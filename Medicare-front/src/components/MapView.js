@@ -17,13 +17,16 @@ const DefaultIcon = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
+
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const DEFAULT_CENTER = [48.85, 2.35];
 
 function RecenterMap({ position }) {
   const map = useMap();
-  if (position) map.setView(position, 13);
+  if (position) {
+    map.setView(position, 13);
+  }
   return null;
 }
 
@@ -36,8 +39,15 @@ function ClickHandler({ onClick }) {
   return null;
 }
 
-export default function MapView({ children, onPositionChange }) {
-  const [position, setPosition] = useState(DEFAULT_CENTER);
+export default function MapView({ children, onPositionChange, center }) {
+  const [position, setPosition] = useState(center || DEFAULT_CENTER);
+
+  // Si center change depuis le parent, on met à jour la position locale
+  useEffect(() => {
+    if (center) {
+      setPosition(center);
+    }
+  }, [center]);
 
   useEffect(() => {
     if (position) {
@@ -57,25 +67,21 @@ export default function MapView({ children, onPositionChange }) {
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">
-          OpenStreetMap
-        </a> contributors'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 
       <RecenterMap position={position} />
       <ClickHandler onClick={handleClick} />
 
-      {position && (
-        <Marker position={position}>
-          <Popup>
-            <b>Position sélectionnée</b>
-            <br />
-            Latitude : {position[0].toFixed(4)} <br />
-            Longitude : {position[1].toFixed(4)}
-          </Popup>
-        </Marker>
-      )}
-
+      <Marker position={position}>
+        <Popup>
+          <b>Position sélectionnée</b>
+          <br />
+          Latitude : {position[0].toFixed(4)}
+          <br />
+          Longitude : {position[1].toFixed(4)}
+        </Popup>
+      </Marker>
 
       {children}
     </MapContainer>
