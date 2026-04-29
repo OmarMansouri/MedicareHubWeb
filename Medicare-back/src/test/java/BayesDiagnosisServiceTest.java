@@ -34,7 +34,6 @@ public class BayesDiagnosisServiceTest {
         assertEquals(0.5, result.get(maladieB), 0.0001);
     }
 
-
     @Test
     void maladieAvecSymptomePresent_estPlusProbable() {
         Symptom symptome1 = new Symptom("fièvre");
