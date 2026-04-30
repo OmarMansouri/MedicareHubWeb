@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../styles/Risque.css";
+import { useNavigate } from "react-router-dom";
 
 // calculer le risque d'un patient
 export default function Risque() {
@@ -8,6 +9,7 @@ export default function Risque() {
   const [idPatient, setIdPatient] = useState("");
   const [resultat, setResultat] = useState(null);
   const [erreur, setErreur] = useState("");
+  const navigate = useNavigate();
 
   // fonction appelee quand on clique sur le bouton calculer
   const calculer = () => {
@@ -95,6 +97,20 @@ export default function Risque() {
    ))}
 
 </ul>
+
+<button
+    onClick={() => navigate(`/recommendations?patient=${idPatient}`)}
+    style={{
+      marginTop: 15,
+      padding: "10px 25px",
+      backgroundColor: "#2c3e50",
+      color: "white",
+      border: "none",
+      borderRadius: 5,
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >Voir les recommandations </button>
 
  </div>
 
