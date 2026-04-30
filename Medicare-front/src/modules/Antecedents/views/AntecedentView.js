@@ -38,7 +38,7 @@ export default function AntecedentsView() {
     } }
 
   // envoyer les antécédents au serveur
-  function enregistrer() {
+   function enregistrer() {
     setMessage("");
     console.log("patient:", idPatient, "maladies sélectionnées:", selected);
 
@@ -56,52 +56,70 @@ export default function AntecedentsView() {
     .then(function() {
     setMessage("Antécédents enregistrés avec succès !");
      })
+     
     .catch(function() {
     setMessage("Erreur lors de l'enregistrement.");
     });
     }
     
     return (
-    <div style={{ width: "500px", margin: "40px auto" }}>
-    <h2>Renseigner mes antécédents</h2>
-    <label>Identifiant du patient :</label>
-      <input
-      type="number"
-      value={idPatient}
-      onChange={(e) => setIdPatient(e.target.value)}
-      placeholder="Ex : 1"
-      style={{ width: "100%", marginBottom: "20px" }}
-    />
-    <ListeMaladies
-      diseases={diseases}
-      selected={selected}
-      onCheck={handleCheckbox}
-      />
+    <div style={{ maxWidth: 500, margin: "40px auto", fontFamily: "Arial, sans-serif" }}>
 
-      <p style={{ marginTop: "15px" }}><strong>Type d'antécédent :</strong></p>
-      <label style={{ marginRight: "15px" }}>
-        <input
-      type="radio"
-      checked={typeRelation === "familial"}
-        onChange={() => setTypeRelation("familial")}
+    <h2 style={{ textAlign: "center" }}>
+        🩺 Mes antécédents
+    </h2>
+
+    <div style={{ background: "white", borderRadius: 10, padding: 25, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
+
+    <label style={{ color: "#555", fontSize: 14 }}>Identifiant du patient :</label>
+     <input
+        type="number"
+        value={idPatient}
+        onChange={(e) => setIdPatient(e.target.value)}
+        placeholder="Ex : 1"
+        style={{ width: "100%", padding: 10, margin: "8px 0 15px 0", border: "1px solid #d0dce8", borderRadius: 6, fontSize: 15, boxSizing: "border-box" }}    
         />
 
-    {" "}Familial
-      </label>
-      <label>
-        <input
-      type="radio"
-      checked={typeRelation === "personnel"}
-      onChange={() => setTypeRelation("personnel")}
+     <p style={{ color: "#555", fontSize: 14, fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: 10 }}>
+        Sélectionnez vos antécédents médicaux
+     </p>
+
+     <ListeMaladies
+        diseases={diseases}
+        selected={selected}
+        onCheck={handleCheckbox}
         />
-        {" "}Personnel
-        </label>
 
-      <button onClick={enregistrer} style={boutonStyle}>
-      Enregistrer
-      </button>
+     <p style={{ marginTop: 15, fontFamily: "Georgia, serif", color: "#2c3e50" }}><strong>Type d'antécédent :</strong></p>
+     <label style={{ marginRight: 15, fontFamily: "Century Gothic, sans-serif" }}>
+        <input
 
-  {message ? <p style={{ marginTop: "10px" }}>{message}</p> : null}
+     type="radio"
+     checked={typeRelation === "familial"}
+     onChange={() => setTypeRelation("familial")}
+     />
+     {" "}Familial
+            
+    </label>
+        <label style={{ fontFamily: "Century Gothic, sans-serif" }}>
+     <input
+    
+    type="radio"
+    checked={typeRelation === "personnel"}
+     onChange={() => setTypeRelation("personnel")}
+     />
+     {" "}Personnel
+    
+    </label>
+      <div style={{ textAlign: "center" }}>
 
-  </div>
+        <button onClick={enregistrer} style={boutonStyle}>
+         Enregistrer
+        </button>
+        </div>
+
+    {message && <p style={{ textAlign: "center", marginTop: 10, color: message.includes("succès") ? "#28a745" : "red", fontSize: 14 }}>{message}</p>}
+
+    </div>
+     </div>
      );}

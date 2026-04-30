@@ -7,14 +7,17 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import medicare.back.models.Antecedent;
+import medicare.back.models.ClickedPointRisk;
 import medicare.back.models.DiagnosticSession;
 import medicare.back.models.PatientAntecedent;
 import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.ProfilPatient;
 import medicare.back.repositories.AntecedentRepository;
+import medicare.back.repositories.ClickedPointRiskRepository;
 import medicare.back.repositories.DiagnosticSessionRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
@@ -29,16 +32,20 @@ private PatientAntecedentRepository patientAntecedentRepository;
 private AntecedentRepository antecedentRepository;
 private DiagnosticSessionRepository diagnosticSessionRepository;
 private ProbableDiseaseResultRepository probableDiseaseResultRepository;
+private JdbcTemplate jdbcTemplate;
+private ClickedPointRiskRepository clickedPointRiskRepository;
 
  public RisqueService(ProfilPatientRepository profilPatientRepository, 
  PatientAntecedentRepository patientAntecedentRepository, 
   AntecedentRepository antecedentRepository,DiagnosticSessionRepository diagnosticSessionRepository,
-  ProbableDiseaseResultRepository probableDiseaseResultRepository) {
+  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate) {
  this.profilPatientRepository = profilPatientRepository;
   this.patientAntecedentRepository = patientAntecedentRepository;
   this.antecedentRepository = antecedentRepository; 
  this.diagnosticSessionRepository = diagnosticSessionRepository;
-  this.probableDiseaseResultRepository = probableDiseaseResultRepository;}
+  this.probableDiseaseResultRepository = probableDiseaseResultRepository;
+  this.clickedPointRiskRepository = clickedPointRiskRepository;
+this.jdbcTemplate = jdbcTemplate;}
 
 
     public Map<String, Object> calculerRisque(int idPatient) {
@@ -310,21 +317,46 @@ private ProbableDiseaseResultRepository probableDiseaseResultRepository;
         podium.add(entree);
         }
 
-        // on trie par score décroissant et on garde les 3 premiers
 
-            for (int i = 0; i < podium.size() - 1; i++) {
-            for (int j = i + 1; j < podium.size(); j++) {
-            double scoreI = (Double) podium.get(i).get("score");
-            double scoreJ = (Double) podium.get(j).get("score");
-             if (scoreJ > scoreI) {
-            Map<String, Object> temp = podium.get(i);
-            podium.set(i, podium.get(j));
-            podium.set(j, temp);
-        }
+// on récupère le dernier score environnemental calculé
+List<ClickedPointRisk> pointsEnv = clickedPointRiskRepository.findAllByOrderByIdDesc();
+if (!pointsEnv.isEmpty()) {
+    double scoreEnv = 0;
+    if (pointsEnv.get(0).totalScore != null) {
+        scoreEnv = pointsEnv.get(0).totalScore;
     }
-}        List<Map<String, Object>> top3 = podium.subList(0, Math.min(3, podium.size()));
+    double scoreEnvNormalise = scoreEnv * 10;
+    for (Map<String, Object> entree : podium) {
+        double ancienScore = (Double) entree.get("score");
+        double mix = (ancienScore * 0.90) + (scoreEnvNormalise * 0.10);
+        double capped = Math.min(100.0, mix);
+        double nouveauScore = Math.round(capped * 10.0) / 10.0;
+        entree.put("score", nouveauScore);
+    }
+    details.add("Facteur environnemental (zone sélectionnée) : score : " + scoreEnvNormalise + "/100");
+}
 
-        log.info("Score profil={} | Podium : {} maladies", scoreProfil, top3.size());
+ //  trie par score décroissant : on garde les 3 premiers
+
+    for (int i = 0; i < podium.size() - 1; i++) {
+     for (int j = i + 1; j < podium.size(); j++) {
+        double scoreI = (Double) podium.get(i).get("score");
+         double scoreJ = (Double) podium.get(j).get("score");
+    if (scoreJ > scoreI) {
+     Map<String, Object> temp = podium.get(i);
+        podium.set(i, podium.get(j));
+        podium.set(j, temp);
+        }
+       }
+    }   
+    int taille = podium.size();
+    int limite = 3;
+    if (taille < limite) {
+     limite = taille;
+    }
+    List<Map<String, Object>> top3 = podium.subList(0, limite);
+         log.info("Score profil={} | Podium : {} maladies", scoreProfil, top3.size());
+
 
         return Map.of(
                 "idPatient", idPatient,
@@ -333,6 +365,46 @@ private ProbableDiseaseResultRepository probableDiseaseResultRepository;
                 "podium", top3
         );
     }
-}
+
+
+    public Map<String, Object> enregistrerEvaluation(int idPatient, List<Map<String, Object>> top3) {
+     String sqlInsertEval = "INSERT INTO evaluation_risque (patient_id, date_calcul) VALUES (?, NOW())";
+      jdbcTemplate.update(sqlInsertEval, idPatient);
+
+    String sqlGetId = "SELECT id FROM evaluation_risque WHERE patient_id = ? ORDER BY date_calcul DESC LIMIT 1";
+     List<Map<String, Object>> evalResult = jdbcTemplate.queryForList(sqlGetId, idPatient);
+       int idEvaluation = Integer.parseInt(evalResult.get(0).get("id").toString());
+
+    int rang = 1;
+     for (Map<String, Object> maladie : top3) {
+      String nomMaladie = (String) maladie.get("maladie");
+       double score = Double.parseDouble(maladie.get("score").toString());
+     String niveau = (String) maladie.get("niveau");
+
+        String sqlDisease = "SELECT id FROM disease WHERE nom = ?";
+         List<Map<String, Object>> resultatDisease = jdbcTemplate.queryForList(sqlDisease, nomMaladie);
+
+        if (!resultatDisease.isEmpty()) {
+          int diseaseId = Integer.parseInt(resultatDisease.get(0).get("id").toString());
+        String sqlDetail = "INSERT INTO evaluation_risque_detail (evaluation_id, disease_id, score, niveau, rang) VALUES (?, ?, ?, ?, ?)";
+            jdbcTemplate.update(sqlDetail, idEvaluation, diseaseId, score, niveau, rang);
+            }
+          rang++;
+         }
+
+    log.info("Évaluation enregistrée avec id=" + idEvaluation);
+    return Map.of("ok", true, "idEvaluation", idEvaluation);
+  }
+
+    public Map<String, Object> getDerniereEvaluation(int idPatient) {
+     String sql = "SELECT date_calcul FROM evaluation_risque WHERE patient_id = ? ORDER BY date_calcul DESC LIMIT 1";
+      List<Map<String, Object>> resultats = jdbcTemplate.queryForList(sql, idPatient);
+    if (resultats.isEmpty()) {
+     return Map.of("message", "Aucune évaluation enregistrée");
+     }
+     return Map.of("dateCalcul", resultats.get(0).get("date_calcul").toString());
+    }
+
+  }
         
             

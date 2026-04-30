@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+/*import React, { useState } from "react";
 import "../styles/Risque.css";
-import { useNavigate } from "react-router-dom";
 
 // calculer le risque d'un patient
 export default function Risque() {
@@ -9,7 +8,8 @@ export default function Risque() {
   const [idPatient, setIdPatient] = useState("");
   const [resultat, setResultat] = useState(null);
   const [erreur, setErreur] = useState("");
-  const navigate = useNavigate();
+  const [messageEnregistrement, setMessageEnregistrement] = useState("");
+  const [derniereEvaluation, setDerniereEvaluation] = useState("");
 
   // fonction appelee quand on clique sur le bouton calculer
   const calculer = () => {
@@ -28,7 +28,7 @@ export default function Risque() {
   // API pour calculer le risque
   console.log("Envoi de la requête au backend pour le patient", idPatient);
 
-    fetch(`http://172.31.250.86:8081/risque/patient/${idPatient}`)
+    fetch(`http://localhost:8081/risque/patient/${idPatient}`)
    .then((res) => {
     console.log("Réponse reçue du serveur");
     return res.json();
@@ -45,12 +45,53 @@ export default function Risque() {
     else {
     console.log("Affichage du score et du niveau de risque");
     setResultat(data);
+     chargerDerniereEvaluation();
+
     }
     })
 
     .catch(() => setErreur("Erreur : impossible de contacter le serveur"));
     };
 
+
+    function enregistrer() {
+    console.log("Enregistrement du résultat pour le patient", idPatient);
+     setMessageEnregistrement("");
+
+    fetch("http://localhost:8081/risque/patient/" + idPatient + "/enregistrer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ podium: resultat.podium }),
+      })
+    .then(function(res)
+     { return res.json(); }
+    )
+     .then(function() { 
+      setMessageEnregistrement("Résultat enregistré avec succès !"); })
+    .catch(function() {
+       setMessageEnregistrement("Erreur lors de l'enregistrement."); 
+      });
+        }
+
+
+   function chargerDerniereEvaluation() {
+     fetch("http://localhost:8081/risque/patient/" + idPatient + "/derniere-evaluation")
+    .then(function(res) 
+    { 
+      return res.json();
+     })
+    .then(function(data) 
+    {
+    if (data.dateCalcul) {
+    setDerniereEvaluation("Dernière évaluation : " + data.dateCalcul.substring(0, 10));
+     } 
+     else { 
+       setDerniereEvaluation("Aucune évaluation enregistrée"); } 
+     })
+    .catch(function() 
+    { 
+      setDerniereEvaluation("Erreur lors du chargement."); });
+    }
    return (
 
   <div className="risque-container">
@@ -66,6 +107,7 @@ export default function Risque() {
   />
 
   <button onClick={calculer}>Calculer</button>
+  {derniereEvaluation && <p>{derniereEvaluation}</p>}
   {erreur && <p className="erreur">{erreur}</p>}
   {resultat && (
 
@@ -87,6 +129,11 @@ export default function Risque() {
   </div>
   )}
 
+
+      <button onClick={enregistrer}>Enregistrer le résultat</button>
+      {messageEnregistrement && <p>{messageEnregistrement}</p>}
+
+
  <h3>Détails du profil</h3>
 
  <ul>
@@ -98,20 +145,6 @@ export default function Risque() {
 
 </ul>
 
-<button
-    onClick={() => navigate(`/recommendations?patient=${idPatient}`)}
-    style={{
-      marginTop: 15,
-      padding: "10px 25px",
-      backgroundColor: "#2c3e50",
-      color: "white",
-      border: "none",
-      borderRadius: 5,
-      cursor: "pointer",
-      fontWeight: "bold",
-    }}
-  >Voir les recommandations </button>
-
  </div>
 
  )}
@@ -120,4 +153,4 @@ export default function Risque() {
 
 </div>
 );
-}
+}*/
