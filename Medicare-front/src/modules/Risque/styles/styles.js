@@ -1,8 +1,7 @@
 export const boutonStyle = {
-    
 padding: "10px 25px",
 margin: "10px",
-backgroundColor: "#2c3e50",
+backgroundColor: "#1a3c5e",
 color: "white",
 border: "none",
 borderRadius: 5,

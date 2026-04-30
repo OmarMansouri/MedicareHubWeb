@@ -41,9 +41,14 @@ public class ProbableDiseaseResult {
         this.rang = rang ;
     }
 
-   public int getRang() { return rang; }
-public Double getScore() { return score; }
-public DiagnosticSession getSession() { return session; }
-public Disease getDisease() { return Disease; }
+   public int getRang(){ return rang; }
+
+   public Double getScore() { 
+    return score; }
+
+   public DiagnosticSession getSession() { 
+    return session; }
+
+   public Disease getDisease() { return Disease; }
 
 }
