@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+parameters {
+    string(name: 'TAG', defaultValue: 'v3.0.0', description: 'Tag Git à déployer')
+}
     environment {
         SSH_HOST = '172.31.250.86'
         SSH_USER = 'medicare'
@@ -11,6 +13,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/OmarMansouri/MedicareHubWeb.git'
+                                sh "git checkout tags/${params.TAG}"
+
             }
         }
 
