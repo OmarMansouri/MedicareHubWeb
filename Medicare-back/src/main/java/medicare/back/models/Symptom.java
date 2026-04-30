@@ -32,6 +32,10 @@ public class Symptom {
         this.nom = nom;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
 
     /*private int id;
     private String nom;
