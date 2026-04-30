@@ -318,39 +318,23 @@ this.jdbcTemplate = jdbcTemplate;}
         }
 
 
-    
-
-
-
-
 // on récupère le dernier score environnemental calculé
 List<ClickedPointRisk> pointsEnv = clickedPointRiskRepository.findAllByOrderByIdDesc();
-
 if (!pointsEnv.isEmpty()) {
     double scoreEnv = 0;
-if (pointsEnv.get(0).totalScore != null) {
-    scoreEnv = pointsEnv.get(0).totalScore;
-}
+    if (pointsEnv.get(0).totalScore != null) {
+        scoreEnv = pointsEnv.get(0).totalScore;
+    }
     double scoreEnvNormalise = scoreEnv * 10;
-
     for (Map<String, Object> entree : podium) {
         double ancienScore = (Double) entree.get("score");
-        double nouveauScore = Math.round(Math.min(100.0, (ancienScore * 0.90) + (scoreEnvNormalise * 0.10)) * 10.0) / 10.0;
+        double mix = (ancienScore * 0.90) + (scoreEnvNormalise * 0.10);
+        double capped = Math.min(100.0, mix);
+        double nouveauScore = Math.round(capped * 10.0) / 10.0;
         entree.put("score", nouveauScore);
     }
     details.add("Facteur environnemental (zone sélectionnée) : score : " + scoreEnvNormalise + "/100");
 }
-
-
-
-
-
-
-
-
-
-   
-     
 
  //  trie par score décroissant : on garde les 3 premiers
 
