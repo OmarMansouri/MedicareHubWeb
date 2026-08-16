@@ -11,3 +11,14 @@ typeRelation: typeRelation,
   
   });
 }
+  //enregistrer les facteurs positifs du patient
+  export function saveFacteurs(idPatient, facteurIds){
+    return fetch ("http://localhost:8081/facteurs/patient/" + idPatient,{
+      method : "POST",
+      headers : {"Content-Type" :"application/json"},
+        body : JSON.stringify({ facteurIds : facteurIds}),
+      })
+      .then(function(res){ 
+        return res.json();
+      });
+    }

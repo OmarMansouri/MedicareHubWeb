@@ -16,12 +16,17 @@ import medicare.back.models.DiagnosticSession;
 import medicare.back.models.PatientAntecedent;
 import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.ProfilPatient;
+import medicare.back.models.FacteurPositif;
+import medicare.back.models.PatientFacteurPositif;
+
 import medicare.back.repositories.AntecedentRepository;
 import medicare.back.repositories.ClickedPointRiskRepository;
 import medicare.back.repositories.DiagnosticSessionRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
 import medicare.back.repositories.ProfilPatientRepository;
+import medicare.back.repositories.FacteurPositifRepository;
+import medicare.back.repositories.PatientFacteurPositifRepository;
 
 @Service
 public class RisqueService {
@@ -34,18 +39,26 @@ private DiagnosticSessionRepository diagnosticSessionRepository;
 private ProbableDiseaseResultRepository probableDiseaseResultRepository;
 private JdbcTemplate jdbcTemplate;
 private ClickedPointRiskRepository clickedPointRiskRepository;
+private FacteurPositifRepository facteurPositifRepository;
+private PatientFacteurPositifRepository patientFacteurPositifRepository;
+
+
 
  public RisqueService(ProfilPatientRepository profilPatientRepository, 
  PatientAntecedentRepository patientAntecedentRepository, 
   AntecedentRepository antecedentRepository,DiagnosticSessionRepository diagnosticSessionRepository,
-  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate) {
+  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate,
+  FacteurPositifRepository facteurPositifRepository, PatientFacteurPositifRepository patientFacteurPositifRepository) {
  this.profilPatientRepository = profilPatientRepository;
   this.patientAntecedentRepository = patientAntecedentRepository;
   this.antecedentRepository = antecedentRepository; 
  this.diagnosticSessionRepository = diagnosticSessionRepository;
   this.probableDiseaseResultRepository = probableDiseaseResultRepository;
   this.clickedPointRiskRepository = clickedPointRiskRepository;
-this.jdbcTemplate = jdbcTemplate;}
+this.jdbcTemplate = jdbcTemplate;
+this.facteurPositifRepository = facteurPositifRepository;
+this.patientFacteurPositifRepository = patientFacteurPositifRepository;
+}
 
 
     public Map<String, Object> calculerRisque(int idPatient) {
@@ -316,6 +329,31 @@ this.jdbcTemplate = jdbcTemplate;}
         entree.put("niveau", niveauMaladie);
         podium.add(entree);
         }
+ 
+        //recuperer les facteurs positifs 
+       List<PatientFacteurPositif> facteurPatient = patientFacteurPositifRepository.findByIdIdPatient(idPatient);
+       double coefficientReduction = 1.0;
+
+       for (PatientFacteurPositif pf : facteurPatient){
+        FacteurPositif facteur = facteurPositifRepository.findById(pf.getId().getIdFacteur()).orElse(null);
+        if (facteur != null){
+            coefficientReduction = coefficientReduction - (facteur.getReduction()/100.0);
+            details.add("Facteur positif :" + facteur.getNom() + "réduction : -" + facteur.getReduction() + "/100" );
+        }
+       }
+          
+       if (coefficientReduction<0){
+        coefficientReduction = 0;
+       }
+
+       //reduc sur chaque maladie 
+       if (coefficientReduction <1.0){
+        for (Map<String, Object> entree : podium){
+            double ancienScore = (Double) entree.get("score");
+            double nouveauScore = Math.round(ancienScore * coefficientReduction * 10.0 ) / 10.0;
+            entree.put("score", nouveauScore);
+        }
+    }
 
 
 // on récupère le dernier score environnemental calculé

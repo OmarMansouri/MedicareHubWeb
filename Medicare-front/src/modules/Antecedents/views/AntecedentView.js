@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import ListeMaladies from "../components/ListeMaladies";
-import { saveAntecedents } from "../Api/AntecedentsApi";
+import { saveAntecedents, saveFacteurs } from "../Api/AntecedentsApi";
 import { boutonStyle } from "../styles/styles";
+
+
 
 export default function AntecedentsView() {
 
@@ -10,6 +12,7 @@ export default function AntecedentsView() {
   const [typeRelation, setTypeRelation] = useState("familial");
   const [idPatient, setIdPatient] = useState("");
   const [message, setMessage] = useState("");
+  const [selectedFacteurs, setSelectedFacteurs] = useState([]);
 
   // liste des maladies chroniques qu'on peut avoir comme antécédent
   const diseases = [
@@ -19,6 +22,14 @@ export default function AntecedentsView() {
     { id: 41, nom: "Stress" },
     { id: 42, nom: "Anxiété" },
     { id: 43, nom: "Dépression légère" },
+  ];
+
+  const facteurs = [
+    { id: 1, nom: "Alimentation saine (réduction -10pts" },
+    { id: 2, nom: "Sport régulier (réduction -15pts" },
+    { id: 3, nom: "Sommeil régulier (réduction -10pts" },
+    { id: 4, nom: "Non alcoolique (réduction -10pts" },
+    { id: 5, nom: "Non stressé (réduction -10pts" },
   ];
 
   // cocher ou décocher une maladie
@@ -37,6 +48,17 @@ export default function AntecedentsView() {
       setSelected(nouvelleliste); 
     } }
 
+    //cocher ou décocher un facteur positif
+    function handleFacteur(id){
+      if (selectedFacteurs.includes(id)){
+        const nouvelleliste = selectedFacteurs.filter((x) => x !== id);
+        setSelectedFacteurs (nouvelleliste); }
+        else {
+          const nouvelleliste = selectedFacteurs.concat(id);
+          setSelectedFacteurs (nouvelleliste);
+        }
+      }
+
   // envoyer les antécédents au serveur
    function enregistrer() {
     setMessage("");
@@ -54,7 +76,13 @@ export default function AntecedentsView() {
 
     saveAntecedents(idPatient, selected, typeRelation)
     .then(function() {
-    setMessage("Antécédents enregistrés avec succès !");
+      //enregistrer les facteurs positifs
+      if (selectedFacteurs.length > 0){
+        return saveFacteurs (idPatient, selectedFacteurs);
+      }
+    })
+    .then(function(){
+    setMessage("Antécédents et facteurs enregistrés avec succès !");
      })
      
     .catch(function() {
@@ -111,8 +139,16 @@ export default function AntecedentsView() {
      {" "}Personnel
     
     </label>
-      <div style={{ textAlign: "center" }}>
 
+        <p style = {{ marginTop: 15, fontFamily: "Georgia, serif", color: "#2c3e50"}}> 
+          <strong>Mes habitudes de vie : </strong>
+          </p>
+          <ListeMaladies
+          diseases = {facteurs}
+          selected = {selectedFacteurs}
+          onCheck = {handleFacteur}
+          />
+        <div style={{ textAlign: "center" }}>
         <button onClick={enregistrer} style={boutonStyle}>
          Enregistrer
         </button>
