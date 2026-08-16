@@ -1,60 +1,74 @@
 package medicare.back.services;
 
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class PriorisationServiceTest {
 
     @Test
-    void risqueEleveEtRecent_ScoreEleve() {
+    void diagnosticSeul_ScoreEleve(){
         // Given
         String niveau ="élevé";
-        String source = "diagnostic";
-        long jours = 10;
-        int nbFacteurs = 2;
 
         // When
-        int resultat = PriorisationService.calculerScorePriorite(niveau, source, jours, nbFacteurs);
+        int resultat = PriorisationService.calculerScorePriorite(niveau, List.of("diagnostic"));
 
         // Then
-        assertEquals(185, resultat);
+        assertEquals(150, resultat);
     }
 
     @Test
-    void risqueMoyenEtAncien_ScoreIntermediaire() {
+    void antecedentSeul_ScoreIntermediaire(){
         String niveau = "moyen";
-        String source = "antecedent";
-        long jours = 60;
-        int facteurs = 1;
 
-        int resultat = PriorisationService.calculerScorePriorite(niveau, source, jours, facteurs);
+        int resultat = PriorisationService.calculerScorePriorite(niveau, List.of("antecedent"));
 
-        assertEquals(82, resultat);
+        assertEquals(80, resultat);
     }
 
     @Test
-    void risqueFaibleEtTresAncien_ScoreFaible() {
+    void profilSeul_ScoreFaible() {
         String niveau = "faible";
-        String source = "autre";
-        long jours = 120;
-        int facteurs = 1;
 
-        int resultat = PriorisationService.calculerScorePriorite(niveau, source, jours, facteurs);
+        int resultat = PriorisationService.calculerScorePriorite(niveau, List.of("profil"));
 
-        assertEquals(30, resultat);
+        assertEquals(40, resultat);
     }
 
     @Test
-    void plusieursFacteurs_ScoreEleve() {
-        String niveau = "moyen";
-        String source = "diagnostic";
-        long jours = 20;
-        int facteurs = 3;
+    void plusieursSourcesDifferentes_ScoreEleve() {
 
-        int resultat = PriorisationService.calculerScorePriorite(niveau, source, jours, facteurs);
+        assertEquals(170, PriorisationService.calculerScorePriorite("élevé", List.of("diagnostic", "antecedent")));
+        assertEquals(160, PriorisationService.calculerScorePriorite("élevé", List.of("diagnostic", "profil")));
+    }
 
-        assertEquals(140, resultat);
+    @Test
+    void prioriser_trieParNiveauPuisParScore() {
+        List<Map<String, Object>> liste = new ArrayList<>();
+        liste.add(creerReco(1L, "moyen",  List.of("diagnostic", "antecedent", "profil")));  // 140 -> cle 1140
+        liste.add(creerReco(2L, "élevé",  List.of("profil")));  // 110 -> cle 2110                            
+        liste.add(creerReco(3L, "faible", List.of("diagnostic"))); //  80 -> cle   80
+
+        new PriorisationService().prioriser(liste);
+
+        // le "élevé" passe devant le "moyen", meme s'il a un score plus petit
+        assertEquals(2L, liste.get(0).get("id"));
+        assertEquals(1L, liste.get(1).get("id"));
+        assertEquals(3L, liste.get(2).get("id"));
+    }
+
+    private Map<String, Object> creerReco(Long id, String niveau, List<String> sources) {
+        Map<String, Object> reco = new HashMap<>();
+        reco.put("id", id);
+        reco.put("niveauRisque", niveau);
+        reco.put("sources", sources);
+
+        return reco;
     }
 
 }

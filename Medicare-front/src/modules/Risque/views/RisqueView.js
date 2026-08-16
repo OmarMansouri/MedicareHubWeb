@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 export default function RisqueView() {
 // états
 
-const [idPatient, setIdPatient] = useState("");
+const patient = JSON.parse(localStorage.getItem("patient"));
+const idPatient = patient ? patient.idPatient : null;
 const [resultat, setResultat] = useState(null);
 const [erreur, setErreur] = useState("");
 const [messageEnregistrement, setMessageEnregistrement] = useState("");
@@ -85,15 +86,13 @@ const navigate = useNavigate();
 
    <div style={{ background: "white", borderRadius: 10, padding: 25 }}>
 
-    <label>Identifiant du patient :</label>
-      <input
-
-   type="number"
-   value={idPatient}
-    onChange={(e) => setIdPatient(e.target.value)}
-   placeholder="Ex : 1"
-    style={{ width: "100%", marginBottom: 15 }}
-   />
+    {patient ? (
+    <p style={{ fontFamily: "Georgia, serif", color: "#1a3c5e", marginBottom: 15 }}>
+        Patient : <strong>{patient.prenom} {patient.nom}</strong>
+    </p>
+    ) : (
+    <p style={{ color: "red" }}>Vous devez être connecté.</p>
+    )}
 
 
    <button onClick={calculer} style={boutonStyle}>
