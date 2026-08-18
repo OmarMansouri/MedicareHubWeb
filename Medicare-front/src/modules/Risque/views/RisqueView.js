@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PodiumMaladies from "../components/PodiumMaladies";
 import { calculerRisque, enregistrerRisque, getDerniereEvaluation } from "../api/risqueApi";
 import { boutonStyle } from "../styles/styles";
+import { useNavigate } from "react-router-dom";
 
 export default function RisqueView() {
 // états
@@ -11,6 +12,7 @@ const [resultat, setResultat] = useState(null);
 const [erreur, setErreur] = useState("");
 const [messageEnregistrement, setMessageEnregistrement] = useState("");
 const [derniereEvaluation, setDerniereEvaluation] = useState("");
+const navigate = useNavigate();
 
 // charger la derniere evaluation du patient
     function chargerDerniereEvaluation(id) {
@@ -97,7 +99,7 @@ const [derniereEvaluation, setDerniereEvaluation] = useState("");
    <button onClick={calculer} style={boutonStyle}>
      Calculer
    </button>
-
+    
    {erreur ? <p style={{ color: "red" }}>{erreur}</p> : null}
     {derniereEvaluation ? <p>{derniereEvaluation}</p> : null}
 
@@ -123,6 +125,13 @@ const [derniereEvaluation, setDerniereEvaluation] = useState("");
     <li key={index}>{d}</li>
       ))}
     </ul>
+
+    <button
+        onClick={() => navigate(`/recommendations?patient=${idPatient}`)}
+        style={boutonStyle}
+    >
+      Voir les recommandations
+    </button>
 
     </div>
     ) : null}
