@@ -22,14 +22,17 @@ export default function AntecedentsView() {
     { id: 41, nom: "Stress" },
     { id: 42, nom: "Anxiété" },
     { id: 43, nom: "Dépression légère" },
+    { id: 47, nom: "Insuffisance cardiaque" },
+    { id: 45, nom: "Diabète" },
+    { id: 46, nom: "Cholestérol élevé" },
   ];
 
   const facteurs = [
-    { id: 1, nom: "Alimentation saine (réduction -10pts" },
-    { id: 2, nom: "Sport régulier (réduction -15pts" },
-    { id: 3, nom: "Sommeil régulier (réduction -10pts" },
-    { id: 4, nom: "Non alcoolique (réduction -10pts" },
-    { id: 5, nom: "Non stressé (réduction -10pts" },
+    { id: 1, nom: "Alimentation saine" },
+    { id: 2, nom: "Sport régulier" },
+    { id: 3, nom: "Sommeil régulier" },
+    { id: 4, nom: "Non alcoolique" },
+    { id: 5, nom: "Non stressé" },
   ];
 
   // cocher ou décocher une maladie
