@@ -1,7 +1,7 @@
 pipeline {
     agent any
 parameters {
-    string(name: 'TAG', defaultValue: 'v3.0.0', description: 'Tag Git à déployer')
+    string(name: 'TAG', defaultValue: 'v3.1.0', description: 'Tag Git à déployer')
 }
     environment {
         SSH_HOST = '172.31.250.86'
@@ -17,6 +17,20 @@ parameters {
 
             }
         }
+
+        stage('Test Backend'){
+            steps {
+                dir('Medicare-back'){
+                    sh 'mvn test'
+                }
+            }
+            post{
+                always {
+                    junit 'Medicare-back/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
 
         stage('Build Backend') {
             steps {
@@ -42,7 +56,7 @@ parameters {
             }
         }
 
-        stage('Deploy to Integration VM') {
+        stage('Deploy to Production VM') {
             steps {
                 sh """
                     ssh ${SSH_USER}@${SSH_HOST} '
