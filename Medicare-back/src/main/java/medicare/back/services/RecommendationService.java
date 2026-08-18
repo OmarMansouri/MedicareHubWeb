@@ -60,26 +60,41 @@ public class RecommendationService {
         resultats.addAll(recoDiag);
 
         List<Map<String, Object>> listeReco = new ArrayList<>();
+        List<Long> dejaVues = new ArrayList<>();
+
+        
         for (Recommendation r : resultats) {
+
+            // une même ligne peut sortir de deux requêtes : on ne la garde qu'une fois
+            if (r.getId() != null) {
+                if (dejaVues.contains(r.getId())) {
+                    continue;
+                }
+                dejaVues.add(r.getId());
+            }
+
+            List<String> sources = new ArrayList<>();
+            if (contientId(recoDiag, r.getId())) {
+                sources.add("diagnostic");
+            }
+            if (contientId(recoAntecedents, r.getId())) {
+                sources.add("antecedent");
+            }
+            if (contientId(recoProfil, r.getId())) {
+                sources.add("profil");
+            }
+
             Map<String, Object> map = new HashMap<>();
             map.put("id", r.getId());
             map.put("contenu", r.getContenu());
             map.put("categorie", r.getCategorie());
             map.put("niveauRisque", r.getNiveauRisque());
-
-             if (r.getDisease() != null) {
-                map.put("source", "diagnostic");
-                map.put("detail", r.getDisease().getNom());
-            } else if (r.getAntecedentNom() != null) {
-                map.put("source", "antecedent");
-                map.put("detail", r.getAntecedentNom());
-            } else {
-                map.put("source", "profil");
-                map.put("detail", r.getProfil());
-            }
+            map.put("sources", sources);
 
             listeReco.add(map);
         }
+
+        PriorisationService.prioriser(listeReco);
 
         Map<String, Object> response = new HashMap<>();
         response.put("idPatient", idPatient);
@@ -87,6 +102,7 @@ public class RecommendationService {
         response.put("recommandations", listeReco);
 
         return response;
+       
     }
 
     private List<Recommendation> getRecommandationsParAntecedents(int idPatient) {
@@ -146,13 +162,7 @@ public class RecommendationService {
         List<Recommendation> reco = new ArrayList<>();
 
         // Récupérer toutes les sessions du patient
-        List<DiagnosticSession> toutesLesSessions = diagnosticSessionRepository.findAll();
-        List<DiagnosticSession> sessionsPatient = new ArrayList<>();
-        for (DiagnosticSession s : toutesLesSessions) {
-            if (s.getPatient() != null && s.getPatient().getIdPatient() == idPatient) {
-              sessionsPatient.add(s);
-            }
-        }
+        List<DiagnosticSession> sessionsPatient = diagnosticSessionRepository.findByPatientIdPatient(idPatient);
 
         if (sessionsPatient.isEmpty()) {
             return reco;
@@ -208,6 +218,18 @@ public class RecommendationService {
             return "moyen";
         }
         return "faible";
+    }
+
+    private boolean contientId(List<Recommendation> liste, Long id) {
+        if (id == null) {
+            return false;
+        }
+        for (Recommendation r : liste) {
+            if (id.equals(r.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

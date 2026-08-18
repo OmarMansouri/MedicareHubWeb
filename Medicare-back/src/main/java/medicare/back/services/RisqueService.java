@@ -201,13 +201,7 @@ this.jdbcTemplate = jdbcTemplate;}
 
         // score de risque par maladie
         // on récupère les 3 dernières sessions du patient
-        List<DiagnosticSession> toutesLesSessions = diagnosticSessionRepository.findAll();
-        List<DiagnosticSession> sessionsPatient = new ArrayList<>();
-        for (DiagnosticSession s : toutesLesSessions) {
-        if (s.getPatient() != null && s.getPatient().getIdPatient() == idPatient) {
-            sessionsPatient.add(s);
-        }
-          }
+         List<DiagnosticSession> sessionsPatient = diagnosticSessionRepository.findByPatientIdPatientOrderByDateDiagnosticAsc(idPatient);
 
         // on garde les 3 dernières sessions seulement
         int debut = Math.max(0, sessionsPatient.size() - 3);
@@ -218,10 +212,7 @@ this.jdbcTemplate = jdbcTemplate;}
         Map<String, Integer> compteur = new HashMap<>();
 
         for (DiagnosticSession session : derniersSessions) {
-        List<ProbableDiseaseResult> resultats = probableDiseaseResultRepository.findAll();
-        for (ProbableDiseaseResult r : resultats) {
-        if (r.getSession() == null || r.getSession().getId() == null) continue;
-        if (!r.getSession().getId().equals(session.getId())) continue;
+        for (ProbableDiseaseResult r : session.getResults()) {
 
         String nomMaladie = r.getDisease().getNom();
         double scorePrediag = 0;
