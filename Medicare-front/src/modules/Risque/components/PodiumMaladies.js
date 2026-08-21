@@ -4,14 +4,28 @@ import React from "react";
 
 export default function PodiumMaladies(props) {
  var podium = props.podium;
+ 
+ //ajout de couleurs selon niveau
+ function getCouleur(niveau){
+  if (niveau === "élevé") return "#dc3545"
+   if (niveau === "moyen") return "#fd7e14"
+   else return"#28a745"
+ }
  return (
-
 <div style={
-{ background: "#e8f4fd", borderRadius: 8, padding: 15 }}>
-  {podium.map((m, index) => (
-<p key={index}>
-  <strong>{index + 1}. {m.maladie}</strong> — Score : {m.score}/100 — Niveau : {m.niveau}
- </p>
-))} 
+{ borderRadius: 8, padding: 15 }}>
+  {podium.map((m, index) => {
+    var couleur = getCouleur(m.niveau);
+    return(
+      <div key={index} style={{ background: "#f8f9fa" , padding: 10, marginBottom: 10, borderLeft: "4px solid " + couleur}}>
+        <p style={{fontFamily: "bold"}}>
+          {index +1}.{m.maladie}
+        </p>
+         <p style={{color: couleur}}>
+          score : {m.score}/100 -- Niveau : {m.niveau}
+        </p>
+      </div>
+      );
+  })}
  </div>
  );}

@@ -13,20 +13,19 @@ import org.springframework.stereotype.Service;
 import medicare.back.models.Antecedent;
 import medicare.back.models.ClickedPointRisk;
 import medicare.back.models.DiagnosticSession;
+import medicare.back.models.FacteurPositif;
 import medicare.back.models.PatientAntecedent;
+import medicare.back.models.PatientFacteurPositif;
 import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.ProfilPatient;
-import medicare.back.models.FacteurPositif;
-import medicare.back.models.PatientFacteurPositif;
-
 import medicare.back.repositories.AntecedentRepository;
 import medicare.back.repositories.ClickedPointRiskRepository;
 import medicare.back.repositories.DiagnosticSessionRepository;
+import medicare.back.repositories.FacteurPositifRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
+import medicare.back.repositories.PatientFacteurPositifRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
 import medicare.back.repositories.ProfilPatientRepository;
-import medicare.back.repositories.FacteurPositifRepository;
-import medicare.back.repositories.PatientFacteurPositifRepository;
 
 @Service
 public class RisqueService {
@@ -357,7 +356,7 @@ if (!pointsEnv.isEmpty()) {
         FacteurPositif facteur = facteurPositifRepository.findById(pf.getId().getIdFacteur()).orElse(null);
         if (facteur != null){
             coefficientReduction = coefficientReduction - (facteur.getReduction()/100.0);
-            details.add("Facteur positif :" + facteur.getNom() + "réduction : -" + facteur.getReduction() + "%" );
+            details.add("Facteur positif : " + facteur.getNom() + " réduction : -" + facteur.getReduction() + "%" );
         }
        }
           

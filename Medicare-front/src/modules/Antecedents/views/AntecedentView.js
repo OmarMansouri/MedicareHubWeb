@@ -10,7 +10,11 @@ export default function AntecedentsView() {
   // mes états
   const [selected, setSelected] = useState([]);
   const [typeRelation, setTypeRelation] = useState("familial");
-  const [idPatient, setIdPatient] = useState("");
+  const patient = JSON.parse(localStorage.getItem("patient"));
+  let idPatient = null;
+  if (patient){
+    idPatient = patient.idPatient;
+  }
   const [message, setMessage] = useState("");
   const [selectedFacteurs, setSelectedFacteurs] = useState([]);
 
@@ -102,15 +106,14 @@ export default function AntecedentsView() {
 
     <div style={{ background: "white", borderRadius: 10, padding: 25, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
 
-    <label style={{ color: "#555", fontSize: 14 }}>Identifiant du patient :</label>
-     <input
-        type="number"
-        value={idPatient}
-        onChange={(e) => setIdPatient(e.target.value)}
-        placeholder="Ex : 1"
-        style={{ width: "100%", padding: 10, margin: "8px 0 15px 0", border: "1px solid #d0dce8", borderRadius: 6, fontSize: 15, boxSizing: "border-box" }}    
-        />
-
+    {patient && (
+      <p style = {{ fontFamily : "Georgia, serif", color : "#1a3c5e", marginBottom : 15 }}>
+        Patient : <strong> {patient.prenom} {patient.nom}</strong>
+      </p>
+    )}
+    {!patient && (
+      <p style= {{ color: "red"}}>vous devez être connecté.</p>
+    )}
      <p style={{ color: "#555", fontSize: 14, fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: 10 }}>
         Sélectionnez vos antécédents médicaux
      </p>
