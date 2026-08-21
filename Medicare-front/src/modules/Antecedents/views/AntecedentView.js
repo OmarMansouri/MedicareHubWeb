@@ -1,15 +1,22 @@
 import React, { useState } from "react";
 import ListeMaladies from "../components/ListeMaladies";
-import { saveAntecedents } from "../Api/AntecedentsApi";
+import { saveAntecedents, saveFacteurs } from "../Api/AntecedentsApi";
 import { boutonStyle } from "../styles/styles";
+
+
 
 export default function AntecedentsView() {
 
   // mes états
   const [selected, setSelected] = useState([]);
   const [typeRelation, setTypeRelation] = useState("familial");
-  const [idPatient, setIdPatient] = useState("");
+  const patient = JSON.parse(localStorage.getItem("patient"));
+  let idPatient = null;
+  if (patient){
+    idPatient = patient.idPatient;
+  }
   const [message, setMessage] = useState("");
+  const [selectedFacteurs, setSelectedFacteurs] = useState([]);
 
   // liste des maladies chroniques qu'on peut avoir comme antécédent
   const diseases = [
@@ -19,6 +26,17 @@ export default function AntecedentsView() {
     { id: 41, nom: "Stress" },
     { id: 42, nom: "Anxiété" },
     { id: 43, nom: "Dépression légère" },
+    { id: 47, nom: "Insuffisance cardiaque" },
+    { id: 45, nom: "Diabète" },
+    { id: 46, nom: "Cholestérol élevé" },
+  ];
+
+  const facteurs = [
+    { id: 1, nom: "Alimentation saine" },
+    { id: 2, nom: "Sport régulier" },
+    { id: 3, nom: "Sommeil régulier" },
+    { id: 4, nom: "Non alcoolique" },
+    { id: 5, nom: "Non stressé" },
   ];
 
   // cocher ou décocher une maladie
@@ -37,6 +55,17 @@ export default function AntecedentsView() {
       setSelected(nouvelleliste); 
     } }
 
+    //cocher ou décocher un facteur positif
+    function handleFacteur(id){
+      if (selectedFacteurs.includes(id)){
+        const nouvelleliste = selectedFacteurs.filter((x) => x !== id);
+        setSelectedFacteurs (nouvelleliste); }
+        else {
+          const nouvelleliste = selectedFacteurs.concat(id);
+          setSelectedFacteurs (nouvelleliste);
+        }
+      }
+
   // envoyer les antécédents au serveur
    function enregistrer() {
     setMessage("");
@@ -54,7 +83,13 @@ export default function AntecedentsView() {
 
     saveAntecedents(idPatient, selected, typeRelation)
     .then(function() {
-    setMessage("Antécédents enregistrés avec succès !");
+      //enregistrer les facteurs positifs
+      if (selectedFacteurs.length > 0){
+        return saveFacteurs (idPatient, selectedFacteurs);
+      }
+    })
+    .then(function(){
+    setMessage("Antécédents et facteurs enregistrés avec succès !");
      })
      
     .catch(function() {
@@ -71,15 +106,14 @@ export default function AntecedentsView() {
 
     <div style={{ background: "white", borderRadius: 10, padding: 25, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
 
-    <label style={{ color: "#555", fontSize: 14 }}>Identifiant du patient :</label>
-     <input
-        type="number"
-        value={idPatient}
-        onChange={(e) => setIdPatient(e.target.value)}
-        placeholder="Ex : 1"
-        style={{ width: "100%", padding: 10, margin: "8px 0 15px 0", border: "1px solid #d0dce8", borderRadius: 6, fontSize: 15, boxSizing: "border-box" }}    
-        />
-
+    {patient && (
+      <p style = {{ fontFamily : "Georgia, serif", color : "#1a3c5e", marginBottom : 15 }}>
+        Patient : <strong> {patient.prenom} {patient.nom}</strong>
+      </p>
+    )}
+    {!patient && (
+      <p style= {{ color: "red"}}>vous devez être connecté.</p>
+    )}
      <p style={{ color: "#555", fontSize: 14, fontFamily: "Georgia, serif", fontStyle: "italic", marginBottom: 10 }}>
         Sélectionnez vos antécédents médicaux
      </p>
@@ -111,8 +145,16 @@ export default function AntecedentsView() {
      {" "}Personnel
     
     </label>
-      <div style={{ textAlign: "center" }}>
 
+        <p style = {{ marginTop: 15, fontFamily: "Georgia, serif", color: "#2c3e50"}}> 
+          <strong>Mes habitudes de vie : </strong>
+          </p>
+          <ListeMaladies
+          diseases = {facteurs}
+          selected = {selectedFacteurs}
+          onCheck = {handleFacteur}
+          />
+        <div style={{ textAlign: "center" }}>
         <button onClick={enregistrer} style={boutonStyle}>
          Enregistrer
         </button>

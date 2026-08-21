@@ -19,7 +19,8 @@ import medicare.back.repositories.DiagnosticSessionRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
 import medicare.back.repositories.ProfilPatientRepository;
-
+import medicare.back.repositories.FacteurPositifRepository;
+import medicare.back.repositories.PatientFacteurPositifRepository;
 class RisqueServiceTest {
 
     private ProfilPatientRepository profilPatientRepository;
@@ -29,6 +30,8 @@ class RisqueServiceTest {
     private ProbableDiseaseResultRepository probableDiseaseResultRepository;
     private ClickedPointRiskRepository clickedPointRiskRepository;
     private JdbcTemplate jdbcTemplate;
+    private FacteurPositifRepository facteurPositifRepository;
+    private PatientFacteurPositifRepository patientFacteurPositifRepository;
 
     private RisqueService risqueService;
 
@@ -41,6 +44,8 @@ class RisqueServiceTest {
         probableDiseaseResultRepository = mock(ProbableDiseaseResultRepository.class);
         clickedPointRiskRepository = mock(ClickedPointRiskRepository.class);
         jdbcTemplate = mock(JdbcTemplate.class);
+        facteurPositifRepository = mock (FacteurPositifRepository.class);
+        patientFacteurPositifRepository = mock(PatientFacteurPositifRepository.class);
 
         risqueService = new RisqueService(
             profilPatientRepository,
@@ -49,7 +54,9 @@ class RisqueServiceTest {
             diagnosticSessionRepository,
             probableDiseaseResultRepository,
             clickedPointRiskRepository,
-            jdbcTemplate
+            jdbcTemplate,
+            facteurPositifRepository,
+            patientFacteurPositifRepository
         );
     }
 
@@ -73,7 +80,8 @@ class RisqueServiceTest {
         when(patientAntecedentRepository.findByIdIdPatient(1)).thenReturn(new ArrayList<>());
         when(diagnosticSessionRepository.findAll()).thenReturn(new ArrayList<>());
         when(clickedPointRiskRepository.findAllByOrderByIdDesc()).thenReturn(new ArrayList<>());
-
+        when (patientFacteurPositifRepository.findByIdIdPatient(1)).thenReturn (new ArrayList<>());
+        when (patientFacteurPositifRepository.findByIdIdPatient(5)).thenReturn (new ArrayList<>());
         Map<String, Object> res = risqueService.calculerRisque(1);
         double score = (Double) res.get("scoreProfil");
 
@@ -89,7 +97,8 @@ class RisqueServiceTest {
         when(patientAntecedentRepository.findByIdIdPatient(5)).thenReturn(new ArrayList<>());
         when(diagnosticSessionRepository.findAll()).thenReturn(new ArrayList<>());
         when(clickedPointRiskRepository.findAllByOrderByIdDesc()).thenReturn(new ArrayList<>());
-
+        when (patientFacteurPositifRepository.findByIdIdPatient(1)).thenReturn (new ArrayList<>());
+        when (patientFacteurPositifRepository.findByIdIdPatient(5)).thenReturn (new ArrayList<>());
         Map<String, Object> res = risqueService.calculerRisque(5);
         double score = (Double) res.get("scoreProfil");
 

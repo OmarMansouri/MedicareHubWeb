@@ -13,13 +13,17 @@ import org.springframework.stereotype.Service;
 import medicare.back.models.Antecedent;
 import medicare.back.models.ClickedPointRisk;
 import medicare.back.models.DiagnosticSession;
+import medicare.back.models.FacteurPositif;
 import medicare.back.models.PatientAntecedent;
+import medicare.back.models.PatientFacteurPositif;
 import medicare.back.models.ProbableDiseaseResult;
 import medicare.back.models.ProfilPatient;
 import medicare.back.repositories.AntecedentRepository;
 import medicare.back.repositories.ClickedPointRiskRepository;
 import medicare.back.repositories.DiagnosticSessionRepository;
+import medicare.back.repositories.FacteurPositifRepository;
 import medicare.back.repositories.PatientAntecedentRepository;
+import medicare.back.repositories.PatientFacteurPositifRepository;
 import medicare.back.repositories.ProbableDiseaseResultRepository;
 import medicare.back.repositories.ProfilPatientRepository;
 
@@ -34,18 +38,26 @@ private DiagnosticSessionRepository diagnosticSessionRepository;
 private ProbableDiseaseResultRepository probableDiseaseResultRepository;
 private JdbcTemplate jdbcTemplate;
 private ClickedPointRiskRepository clickedPointRiskRepository;
+private FacteurPositifRepository facteurPositifRepository;
+private PatientFacteurPositifRepository patientFacteurPositifRepository;
+
+
 
  public RisqueService(ProfilPatientRepository profilPatientRepository, 
  PatientAntecedentRepository patientAntecedentRepository, 
   AntecedentRepository antecedentRepository,DiagnosticSessionRepository diagnosticSessionRepository,
-  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate) {
+  ProbableDiseaseResultRepository probableDiseaseResultRepository,ClickedPointRiskRepository clickedPointRiskRepository,JdbcTemplate jdbcTemplate,
+  FacteurPositifRepository facteurPositifRepository, PatientFacteurPositifRepository patientFacteurPositifRepository) {
  this.profilPatientRepository = profilPatientRepository;
   this.patientAntecedentRepository = patientAntecedentRepository;
   this.antecedentRepository = antecedentRepository; 
  this.diagnosticSessionRepository = diagnosticSessionRepository;
   this.probableDiseaseResultRepository = probableDiseaseResultRepository;
   this.clickedPointRiskRepository = clickedPointRiskRepository;
-this.jdbcTemplate = jdbcTemplate;}
+this.jdbcTemplate = jdbcTemplate;
+this.facteurPositifRepository = facteurPositifRepository;
+this.patientFacteurPositifRepository = patientFacteurPositifRepository;
+}
 
 
     public Map<String, Object> calculerRisque(int idPatient) {
@@ -169,6 +181,7 @@ this.jdbcTemplate = jdbcTemplate;}
             double scoreBase = 0;
 
           if (nom.contains("hyperten")) {
+
             scoreBase = 60;
         } else if (nom.contains("hypotensi")) {
             scoreBase = 30;
@@ -182,6 +195,10 @@ this.jdbcTemplate = jdbcTemplate;}
             scoreBase = 30;
         } else if (nom.contains("depress") || nom.contains("dépres")) {
                 scoreBase = 30;
+        } else if (nom.contains("cardia") || nom.contains("insuffisance card")) {
+                scoreBase = 90;
+        } else if (nom.contains("cholest")) {
+            scoreBase = 75;
         }
 
         // personnel = poids plein, familial = moitié
@@ -256,14 +273,17 @@ this.jdbcTemplate = jdbcTemplate;}
         double scoreBase = 0;
         if (nom.contains("hyperten")) {scoreBase = 60;
         }
-        else if (nom.contains("hypotensi")) { scoreBase = 30;
+        else if (nom.contains("hypotensi")) 
+        { scoreBase = 30;
         } else if (nom.contains("asth")) { scoreBase = 40;
         }else if (nom.contains("diab")) { scoreBase = 75;
         } else if (nom.contains("stress")) { scoreBase = 30;
         }else if (nom.contains("anxiet") || nom.contains("anxiét")) { scoreBase = 30;
-        }else if (nom.contains("depress") || nom.contains("dépres")) { scoreBase = 30;}
-
-            if (relation.contains("fam")) {
+        }else if (nom.contains("depress") || nom.contains("dépres")) { scoreBase = 30;
+        }else if (nom.contains("cholest")) {scoreBase = 75;
+        }else if (nom.contains("cardia") || nom.contains ("insuffisance card")) {scoreBase = 90;}      
+        
+        if (relation.contains("fam")) {
             scoreBase = scoreBase / 2;
             }
             scoresAntecedentsParMaladie.put(ant.getNom(), scoreBase);
@@ -307,7 +327,7 @@ this.jdbcTemplate = jdbcTemplate;}
         entree.put("niveau", niveauMaladie);
         podium.add(entree);
         }
-
+ 
 
 // on récupère le dernier score environnemental calculé
 List<ClickedPointRisk> pointsEnv = clickedPointRiskRepository.findAllByOrderByIdDesc();
@@ -327,6 +347,44 @@ if (!pointsEnv.isEmpty()) {
     details.add("Facteur environnemental (zone sélectionnée) : score : " + scoreEnvNormalise + "/100");
 }
 
+
+    //recuperer les facteurs positifs 
+       List<PatientFacteurPositif> facteurPatient = patientFacteurPositifRepository.findByIdIdPatient(idPatient);
+       double coefficientReduction = 1.0;
+
+       for (PatientFacteurPositif pf : facteurPatient){
+        FacteurPositif facteur = facteurPositifRepository.findById(pf.getId().getIdFacteur()).orElse(null);
+        if (facteur != null){
+            coefficientReduction = coefficientReduction - (facteur.getReduction()/100.0);
+            details.add("Facteur positif : " + facteur.getNom() + " réduction : -" + facteur.getReduction() + "%" );
+        }
+       }
+          
+       if (coefficientReduction<0){
+        coefficientReduction = 0;
+       }
+
+       //reduc sur chaque maladie 
+       if (coefficientReduction <1.0){
+        for (Map<String, Object> entree : podium){
+            double ancienScore = (Double) entree.get("score");
+            double nouveauScore = Math.round(ancienScore * coefficientReduction * 10.0 ) / 10.0;
+            entree.put("score", nouveauScore);
+        }
+    }
+        
+      // recalculer le niveau de risque 
+         for (Map<String, Object> entree : podium){
+            double scoreFinal = (Double) entree.get("score");
+            String niveauFinal;
+            if (scoreFinal <= 30)
+            {niveauFinal = "faible";}
+            else if (scoreFinal<= 60)
+            {niveauFinal = "moyen";}
+            else {niveauFinal = "élevé";}
+            entree.put ("niveau", niveauFinal);
+         }
+     
  //  trie par score décroissant : on garde les 3 premiers
 
     for (int i = 0; i < podium.size() - 1; i++) {

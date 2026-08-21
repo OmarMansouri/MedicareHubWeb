@@ -84,7 +84,7 @@ const navigate = useNavigate();
 
    <h2 style={{ textAlign: "center" }}>Évaluation du risque</h2>
 
-   <div style={{ background: "white", borderRadius: 10, padding: 25 }}>
+   <div style={{ background: "white", borderRadius: 10, padding: 25, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
 
     {patient ? (
     <p style={{ fontFamily: "Georgia, serif", color: "#1a3c5e", marginBottom: 15 }}>
@@ -95,9 +95,9 @@ const navigate = useNavigate();
     )}
 
 
-   <button onClick={calculer} style={boutonStyle}>
-     Calculer
-   </button>
+   <div style={{ textAlign: "center"}}>
+    <button onClick={calculer} style={boutonStyle}>Calculer</button>
+   </div>
     
    {erreur ? <p style={{ color: "red" }}>{erreur}</p> : null}
     {derniereEvaluation ? <p>{derniereEvaluation}</p> : null}
@@ -105,10 +105,9 @@ const navigate = useNavigate();
      {resultat ? (
       <div style={{ marginTop: 20 }}>
 
-       <p>
-      <strong>Score profil : </strong> {resultat.scoreProfil}/100
-      </p>
-
+       <div style={{ background: "#f0f6ff", borderRadius: 8, padding: 12, marginBottom: 15 }}>
+        <strong>Score profil : {resultat.scoreProfil}/100</strong>
+        </div>
       <h3>Maladies à risque</h3>
        <PodiumMaladies podium={resultat.podium} />
 
@@ -119,11 +118,11 @@ const navigate = useNavigate();
    {messageEnregistrement ? <p>{messageEnregistrement}</p> : null}
 
     <h3>Détails du profil</h3>
-     <ul>
+     <div style={{ background: "#f5f5f5", borderRadius: 8, padding: 15}}>
     {resultat.details.map((d, index) => (
-    <li key={index}>{d}</li>
+    <p key={index}>•{d}</p>
       ))}
-    </ul>
+    </div>
 
     <button
         onClick={() => navigate(`/recommendations?patient=${idPatient}`)}
